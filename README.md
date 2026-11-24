@@ -1,4 +1,4 @@
-# Django Assignment: Building a Healthcare Backend 🏥
+# Django Assignment: Building a Healthcare Backend 🏥 - CareSync
 
 A production-ready, full-stack healthcare application with a robust **Django & Django REST Framework (DRF)** backend, **PostgreSQL** relational database, **SimpleJWT** token authentication, and a modern **interactive frontend portal**.
 
