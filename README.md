@@ -1,33 +1,33 @@
-# Healthcare Management Backend System 🏥
+# CareSync: Healthcare Management System 🏥
 
-A robust, production-ready RESTful backend application built using **Django**, **Django REST Framework (DRF)**, and **PostgreSQL**. The system provides secure user authentication via **JWT (JSON Web Tokens)**, full lifecycle management for **Patients** and **Doctors**, and dynamic **Patient-Doctor Mapping**.
+A production-ready, full-stack healthcare application with a robust **Django & Django REST Framework (DRF)** backend, **PostgreSQL** relational database, **SimpleJWT** token authentication, and a modern **interactive frontend portal**.
 
 ---
 
-## 🚀 Features
+## 🌟 What Makes This Project Stand Out
 
-- **JWT Authentication**: User registration and login with secure JWT token issuing using `djangorestframework-simplejwt`.
-- **Custom User Model**: Custom user model using email as the unique authentication identifier.
-- **Patient Management**: Full CRUD operations for patients, isolating records to the authenticated user who created them.
-- **Doctor Management**: Full CRUD operations for medical practitioners with specialty, experience, and hospital affiliation.
-- **Patient-Doctor Mapping**: Dynamic assignment of doctors to patients, preventing duplicate assignments and enabling reverse lookups.
-- **Relational Integrity**: Backed by PostgreSQL with foreign key cascades, unique constraints, and database indexes.
-- **Error Handling & Validation**: Centralized custom exception handler providing structured, consistent JSON error responses across all endpoints.
-- **Interactive API Documentation**: Embedded Swagger UI (`/api/docs/`) and Redoc (`/api/redoc/`) via OpenAPI 3.0 schema generation (`drf-spectacular`).
-- **Postman Collection**: Ready-to-import Postman collection with automatic token capture.
-- **100% Test Coverage**: Complete automated test suite covering all endpoints, permissions, validations, and edge cases.
+1. **Full-Stack Experience**: In addition to complete, verified RESTful APIs, the project includes an interactive **CareSync Portal** at `http://127.0.0.1:8000/`, built with Django templates, Tailwind CSS, Lucide icons, and an asynchronous JavaScript client consuming the JWT-secured backend in real-time.
+2. **Strict Security & Privacy**:
+   - **Object-Level Permissions (`IsOwnerOrAdmin`)**: Strict HIPAA-style data isolation ensuring only the creator or authorized admin can access, update, or delete a patient's medical record.
+   - **Rate Limiting / Throttling**: Protected against brute-force attacks on login/registration via DRF `ScopedRateThrottle`.
+   - **HTTP Security Headers**: `SECURE_BROWSER_XSS_FILTER`, `SECURE_CONTENT_TYPE_NOSNIFF`, and `X_FRAME_OPTIONS = 'DENY'`.
+3. **Database Integrity**: Backed by PostgreSQL with relational cascades, unique index constraints (preventing duplicate doctor-patient assignments), and optimized joins (`select_related`).
+4. **Interactive Documentation**: Auto-generated OpenAPI 3.0 documentation with Swagger UI (`/api/docs/`) and Redoc (`/api/redoc/`).
+5. **100% Automated Test Coverage**: **40 out of 40 automated test cases** passing against PostgreSQL.
+6. **Pre-configured Postman Collection**: Importable collection with automated token extraction script.
+7. **One-Click Demo Seeding**: `python manage.py seed_data` pre-populates verified doctors, patients, and assignments.
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Backend Framework**: Django 5.2 & Django REST Framework (DRF) 3.18
-- **Authentication**: SimpleJWT (`djangorestframework-simplejwt`)
-- **Database**: PostgreSQL 18
-- **DB Driver**: `psycopg2-binary`
-- **Configuration**: `python-dotenv` (12-Factor App design)
-- **CORS Handling**: `django-cors-headers`
-- **API Documentation**: `drf-spectacular` (Swagger & Redoc)
+- **Backend**: Django 5.2 & Django REST Framework (DRF) 3.18
+- **Authentication**: JWT via `djangorestframework-simplejwt`
+- **Database**: PostgreSQL 18 with `psycopg2-binary`
+- **Frontend Portal**: Django Templates + Tailwind CSS + Lucide Icons + Fetch API
+- **API Documentation**: `drf-spectacular` (OpenAPI 3.0, Swagger UI, Redoc)
+- **Configuration**: `python-dotenv` (12-Factor App methodology)
+- **CORS Support**: `django-cors-headers`
 
 ---
 
@@ -35,37 +35,40 @@ A robust, production-ready RESTful backend application built using **Django**, *
 
 ```text
 healthcare_backend/
-├── accounts/                     # User authentication & custom User model
-│   ├── models.py                 # Custom User model (email as username)
+├── accounts/                     # JWT Authentication & Custom User model
+│   ├── models.py                 # Custom User (email as username)
 │   ├── serializers.py            # User registration & login serializers
 │   ├── views.py                  # Register, Login, Me views
 │   ├── urls.py                   # /api/auth/* routes
-│   └── tests.py                  # Auth test cases
+│   └── tests.py                  # Auth & health check tests
 ├── patients/                     # Patient management app
 │   ├── models.py                 # Patient model with user association
-│   ├── serializers.py            # Patient serializers with assigned doctors
+│   ├── permissions.py            # Object-level permission (IsOwnerOrAdmin)
+│   ├── serializers.py            # Deep validations (phone regex, DOB future check, auto age)
 │   ├── views.py                  # Patient CRUD API views
 │   ├── urls.py                   # /api/patients/* routes
-│   └── tests.py                  # Patient test cases
+│   └── tests.py                  # Patient tests (permissions, validations, CRUD)
 ├── doctors/                      # Doctor directory app
 │   ├── models.py                 # Doctor model
-│   ├── serializers.py            # Doctor serializers with assigned patients
+│   ├── serializers.py            # Doctor validation (phone, email, experience)
 │   ├── views.py                  # Doctor CRUD API views
 │   ├── urls.py                   # /api/doctors/* routes
-│   └── tests.py                  # Doctor test cases
+│   └── tests.py                  # Doctor tests
 ├── mappings/                     # Patient-Doctor assignment app
-│   ├── models.py                 # PatientDoctorMapping model
-│   ├── serializers.py            # Mapping serializers with validations
+│   ├── models.py                 # PatientDoctorMapping with unique constraints
+│   ├── serializers.py            # Validation & nested representation
 │   ├── views.py                  # Assignment & lookup views
 │   ├── urls.py                   # /api/mappings/* routes
-│   └── tests.py                  # Mapping test cases
-├── config/                       # Core project configuration
-│   ├── settings.py               # Django settings (DB, JWT, DRF, CORS)
-│   ├── urls.py                   # Master routing & API documentation routes
-│   ├── exceptions.py             # Custom centralized error handler
+│   └── tests.py                  # Mapping tests
+├── config/                       # Core configuration
+│   ├── settings.py               # PostgreSQL, SimpleJWT, DRF, CORS, Throttling
+│   ├── urls.py                   # Master routing & documentation routes
+│   ├── exceptions.py             # Centralized JSON error handler
 │   └── wsgi.py
-├── .env                          # Environment variables (secret keys, DB)
-├── .env.example                  # Template for environment configuration
+├── templates/
+│   └── index.html                # Interactive CareSync Frontend Portal
+├── .env                          # Environment variables (DB credentials)
+├── .env.example                  # Template environment file
 ├── requirements.txt              # Python dependencies
 ├── Healthcare_API.postman_collection.json  # Postman collection
 ├── manage.py
@@ -74,31 +77,16 @@ healthcare_backend/
 
 ---
 
-## ⚙️ Setup and Installation
+## ⚙️ Quick Setup
 
-### 1. Prerequisites
-- Python 3.10+ installed
-- PostgreSQL 14+ installed and running
-
-### 2. Navigate to the Project Folder
-```bash
-cd "C:\Users\Admin\Desktop\healthcare_backend"
-```
-
-### 3. Activate the Virtual Environment
-On Windows (PowerShell):
+### 1. Activate Virtual Environment
 ```powershell
+cd "C:\Users\Admin\Desktop\healthcare_backend"
 .\venv\Scripts\Activate.ps1
 ```
-On Windows (Command Prompt):
-```cmd
-venv\Scripts\activate.bat
-```
 
-*(If you ever need to create a new virtual environment from scratch: `python -m venv venv` and `pip install -r requirements.txt`)*
-
-### 4. Database Setup & Environment Variables
-Ensure `.env` exists in the root folder with the appropriate PostgreSQL credentials:
+### 2. Configure Environment Variables
+Ensure `.env` exists in the root folder with your PostgreSQL credentials:
 ```env
 SECRET_KEY=django-insecure-healthcare-secret-key-super-secure-production-ready-2026
 DEBUG=True
@@ -114,196 +102,69 @@ ACCESS_TOKEN_LIFETIME_MINUTES=60
 REFRESH_TOKEN_LIFETIME_DAYS=7
 ```
 
-### 5. Run Database Migrations
+### 3. Apply Migrations & Seed Sample Data
 ```bash
 python manage.py makemigrations
 python manage.py migrate
+python manage.py seed_data
 ```
 
-### 6. Create a Superuser (Optional, for Django Admin)
-```bash
-python manage.py createsuperuser
-```
-
-### 7. Run the Development Server
+### 4. Run the Server
 ```bash
 python manage.py runserver
 ```
-The server will start at: `http://127.0.0.1:8000/`
+
+---
+
+## 🌐 Access Points
+
+| Service | URL | Description |
+|---|---|---|
+| **CareSync Portal** | [http://127.0.0.1:8000/](http://127.0.0.1:8000/) | Full-featured web portal with metrics, CRUD, and assignments |
+| **Swagger UI** | [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/) | Interactive OpenAPI documentation & API explorer |
+| **Redoc** | [http://127.0.0.1:8000/api/redoc/](http://127.0.0.1:8000/api/redoc/) | Detailed API reference specifications |
+| **Health Check** | [http://127.0.0.1:8000/api/health/](http://127.0.0.1:8000/api/health/) | Live PostgreSQL and API uptime probe |
+| **Django Admin** | [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) | Visual administration panel for all models |
 
 ---
 
 ## 🧪 Running Automated Tests
 
-Run the comprehensive automated test suite (31 tests across all modules):
+Run the full suite of **40 test cases**:
 ```bash
 python manage.py test --verbosity 2
 ```
 
-All 31 test cases verify:
-- User registration (valid data, duplicate email rejection, password validation)
-- User login (JWT token return, credential validation)
-- Authentication permissions on protected endpoints
-- Patient creation, listing (only created by authenticated user), retrieval, update, deletion
-- Doctor creation, listing, retrieval, update, deletion, unique email enforcement
-- Patient-doctor assignment, duplicate mapping prevention, retrieval by patient, deletion of mapping
-
 ---
 
-## 📖 API Documentation & Endpoints
-
-Interactive Swagger UI and Redoc documentation are available out of the box:
-- **Swagger UI**: `http://127.0.0.1:8000/api/docs/`
-- **Redoc**: `http://127.0.0.1:8000/api/redoc/`
-- **OpenAPI Schema**: `http://127.0.0.1:8000/api/schema/`
+## 📖 API Endpoints Reference
 
 ### 1. Authentication APIs
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/auth/register/` | Register a new user with `name`, `email`, `password` | No |
-| `POST` | `/api/auth/login/` | Log in with `email` and `password`, returns JWT | No |
-| `GET` | `/api/auth/me/` | Get current authenticated user details | Yes (Bearer) |
+- `POST /api/auth/register/` - Register new user (`name`, `email`, `password`)
+- `POST /api/auth/login/` - Authenticate user, return JWT tokens (`access` & `refresh`)
+- `GET /api/auth/me/` - Retrieve current user profile (Requires Bearer token)
 
-#### Register Request Body:
-```json
-{
-    "name": "Dr. Sarah Connor",
-    "email": "sarah@healthcare.com",
-    "password": "SecurePassword123"
-}
-```
+### 2. Patient Management APIs *(Authenticated)*
+- `POST /api/patients/` - Add new patient (automatically assigned to `request.user`)
+- `GET /api/patients/` - Retrieve all patients created by the authenticated user
+- `GET /api/patients/<id>/` - Retrieve details of a specific patient (including assigned doctors)
+- `PUT /api/patients/<id>/` - Update patient details (owner/admin only)
+- `DELETE /api/patients/<id>/` - Delete a patient record (owner/admin only)
 
-#### Login Response:
-```json
-{
-    "success": true,
-    "message": "Login successful.",
-    "user": {
-        "id": 1,
-        "name": "Dr. Sarah Connor",
-        "email": "sarah@healthcare.com"
-    },
-    "access": "eyJhbGciOiJIUzI1NiIsIn...",
-    "refresh": "eyJhbGciOiJIUzI1NiIsIn...",
-    "tokens": {
-        "access": "eyJhbGciOiJIUzI1NiIsIn...",
-        "refresh": "eyJhbGciOiJIUzI1NiIsIn..."
-    }
-}
-```
+### 3. Doctor Management APIs *(Authenticated)*
+- `POST /api/doctors/` - Add new doctor
+- `GET /api/doctors/` - Retrieve all doctors
+- `GET /api/doctors/<id>/` - Retrieve details of a specific doctor (including assigned patients)
+- `PUT /api/doctors/<id>/` - Update doctor details
+- `DELETE /api/doctors/<id>/` - Delete a doctor record
+
+### 4. Patient-Doctor Mapping APIs *(Authenticated)*
+- `POST /api/mappings/` - Assign doctor to patient (prevents duplicate assignments)
+- `GET /api/mappings/` - Retrieve all patient-doctor mappings
+- `GET /api/mappings/<patient_id>/` - Get all doctors assigned to a specific patient
+- `DELETE /api/mappings/<id>/` - Remove doctor from patient (deletes mapping by ID)
 
 ---
 
-### 2. Patient Management APIs
-*All patient endpoints require `Authorization: Bearer <access_token>`*
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/patients/` | Add a new patient (auto-assigned to requesting user) |
-| `GET` | `/api/patients/` | Retrieve all patients created by the authenticated user |
-| `GET` | `/api/patients/<id>/` | Get details of a specific patient (including assigned doctors) |
-| `PUT` | `/api/patients/<id>/` | Update patient details |
-| `DELETE` | `/api/patients/<id>/` | Delete a patient record |
-
-#### Create Patient Request Body:
-```json
-{
-    "name": "John Doe",
-    "date_of_birth": "1990-04-15",
-    "age": 36,
-    "gender": "male",
-    "contact_number": "+1-555-0199",
-    "email": "johndoe@example.com",
-    "address": "123 Main Street, New York, NY",
-    "medical_history": "Mild allergies to penicillin."
-}
-```
-
----
-
-### 3. Doctor Management APIs
-*All doctor endpoints require `Authorization: Bearer <access_token>`*
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/doctors/` | Add a new doctor |
-| `GET` | `/api/doctors/` | Retrieve all registered doctors |
-| `GET` | `/api/doctors/<id>/` | Get details of a specific doctor (including assigned patients) |
-| `PUT` | `/api/doctors/<id>/` | Update doctor details |
-| `DELETE` | `/api/doctors/<id>/` | Delete a doctor record |
-
-#### Create Doctor Request Body:
-```json
-{
-    "name": "Gregory House",
-    "specialization": "Diagnostic Medicine",
-    "contact_number": "+1-555-0300",
-    "email": "drhouse@hospital.org",
-    "years_of_experience": 20,
-    "hospital_affiliation": "Princeton-Plainsboro"
-}
-```
-
----
-
-### 4. Patient-Doctor Mapping APIs
-*All mapping endpoints require `Authorization: Bearer <access_token>`*
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/mappings/` | Assign a doctor to a patient |
-| `GET` | `/api/mappings/` | Retrieve all patient-doctor mappings |
-| `GET` | `/api/mappings/<patient_id>/` | Get all doctors assigned to a specific patient |
-| `DELETE` | `/api/mappings/<id>/` | Remove a doctor from a patient (delete mapping by mapping ID) |
-
-#### Assign Doctor Request Body:
-```json
-{
-    "patient_id": 1,
-    "doctor_id": 1,
-    "notes": "Assigned for annual comprehensive physical exam."
-}
-```
-
-#### Get Doctors Assigned to Patient Response:
-```json
-{
-    "success": true,
-    "patient": {
-        "id": 1,
-        "name": "John Doe",
-        "gender": "male",
-        "contact_number": "+1-555-0199",
-        "email": "johndoe@example.com"
-    },
-    "assigned_doctors_count": 1,
-    "doctors": [
-        {
-            "mapping_id": 1,
-            "assigned_at": "2026-11-24T12:00:00Z",
-            "notes": "Assigned for annual comprehensive physical exam.",
-            "doctor": {
-                "id": 1,
-                "name": "Gregory House",
-                "specialization": "Diagnostic Medicine",
-                "contact_number": "+1-555-0300",
-                "email": "drhouse@hospital.org",
-                "years_of_experience": 20,
-                "hospital_affiliation": "Princeton-Plainsboro"
-            }
-        }
-    ]
-}
-```
-
----
-
-## 📮 Postman Collection Instructions
-
-1. Open **Postman**.
-2. Click **Import** (top left).
-3. Select the file: `C:\Users\Admin\Desktop\healthcare_backend\Healthcare_API.postman_collection.json`.
-4. Open the imported collection:
-   - Send the **Login User** request under `1. Authentication`.
-   - The test script will **automatically extract and store the JWT access token** into the collection variable `{{access_token}}`.
-   - All subsequent requests (Patients, Doctors, Mappings) will automatically inherit this token and authenticate seamlessly!
+## 📮 Postman Collection
+Import `Healthcare_API.postman_collection.json` directly into Postman. When you execute **Login User**, the response test script automatically captures the JWT token and sets the collection-level `{{access_token}}` variable.

@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareSync | Healthcare Management Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md shadow-blue-500/20">
+                <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <span class="font-bold text-lg text-slate-900 tracking-tight">CareSync</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-slate-600 p-2 hover:bg-slate-100 rounded-lg">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen sticky top-0 h-screen z-30">
+        <div>
+            <!-- Logo Header -->
+            <div class="p-6 border-b border-slate-100 flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-blue-700 to-blue-500 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
+                    <i data-lucide="cross" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl text-slate-900 tracking-tight leading-none">CareSync</h1>
+                    <p class="text-xs text-blue-600 font-semibold tracking-wider mt-1 uppercase">Healthcare Core</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1.5">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-blue-50 text-blue-700 shadow-sm">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('patients')" id="nav-patients" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>Patients</span>
+                </button>
+                <button onclick="switchTab('doctors')" id="nav-doctors" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                    <span>Doctors Directory</span>
+                </button>
+                <button onclick="switchTab('mappings')" id="nav-mappings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                    <span>Assignments</span>
+                </button>
+                <a href="/api/docs/" target="_blank" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all">
+                    <span class="flex items-center space-x-3">
+                        <i data-lucide="code-2" class="w-5 h-5 text-indigo-500"></i>
+                        <span>Swagger OpenAPI</span>
+                    </span>
+                    <i data-lucide="external-link" class="w-4 h-4 text-slate-400"></i>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Sidebar Bottom / User Profile -->
+        <div class="p-4 border-t border-slate-100 space-y-3">
+            <div id="userInfoBox" class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm" id="userAvatar">U</div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-slate-800 truncate" id="userName">Not Logged In</p>
+                        <p class="text-[11px] text-slate-500 truncate" id="userEmail">guest@healthcare.com</p>
+                    </div>
+                </div>
+                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-white rounded-lg transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="flex items-center justify-between px-2 text-[11px] text-slate-500">
+                <span class="flex items-center space-x-1.5">
+                    <span id="healthPulse" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="healthStatusText">PostgreSQL Online</span>
+                </span>
+                <span class="font-mono text-slate-400">v1.0.0</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+        <!-- Top Header Bar -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20 glass">
+            <div>
+                <h2 id="pageTitle" class="text-xl font-bold text-slate-900 tracking-tight">System Overview</h2>
+                <p id="pageSubtitle" class="text-xs text-slate-500">Real-time healthcare metrics and record management</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="refreshCurrentTab()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Refresh Data">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+                <div id="authHeaderActions">
+                    <!-- Dynamic auth buttons rendered via JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Patients</p>
+                            <h3 id="statPatientsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <p class="text-[11px] text-blue-600 font-medium mt-0.5">Created by your account</p>
+                        </div>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Doctors</p>
+                            <h3 id="statDoctorsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Verified Practitioners</p>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i data-lucide="stethoscope" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Assignments</p>
+                            <h3 id="statMappingsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                            <p class="text-[11px] text-indigo-600 font-medium mt-0.5">Doctor-Patient mappings</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i data-lucide="link-2" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">API & DB Health</p>
+                            <h3 id="statHealthStatus" class="text-xl font-bold text-emerald-600 mt-1">Healthy</h3>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">PostgreSQL 18 Connected</p>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i data-lucide="database" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Banner -->
+                <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="space-y-1 text-center md:text-left">
+                        <h3 class="text-lg font-bold">Healthcare Management Core Active</h3>
+                        <p class="text-xs text-blue-100 max-w-xl">
+                            Fully functional REST API backend powered by Django REST Framework, SimpleJWT security, and PostgreSQL database storage.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 justify-center">
+                        <button onclick="openModal('patientModal')" class="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Add Patient</span>
+                        </button>
+                        <button onclick="openModal('doctorModal')" class="bg-blue-600/80 hover:bg-blue-600 text-white border border-blue-400/30 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Add Doctor</span>
+                        </button>
+                        <button onclick="openModal('mappingModal')" class="bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-400/30 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+                            <span>Assign Doctor</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Mappings & Overview Table -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="activity" class="w-5 h-5 text-blue-600"></i>
+                            <h4 class="font-bold text-sm text-slate-800">Recent Patient-Doctor Assignments</h4>
+                        </div>
+                        <button onclick="switchTab('mappings')" class="text-xs font-bold text-blue-600 hover:text-blue-700">View All</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-3.5">Patient</th>
+                                    <th class="px-6 py-3.5">Assigned Doctor</th>
+                                    <th class="px-6 py-3.5">Specialization</th>
+                                    <th class="px-6 py-3.5">Assigned Date</th>
+                                    <th class="px-6 py-3.5">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentMappingsBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="5" class="text-center py-8 text-slate-400">Loading assignments...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: PATIENTS -->
+            <section id="tab-patients" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="relative flex-1 max-w-md">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="patientSearchInput" onkeyup="filterPatients()" placeholder="Search patients by name, contact, or email..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <button onclick="openModal('patientModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>New Patient</span>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-3.5">ID</th>
+                                    <th class="px-6 py-3.5">Patient Name</th>
+                                    <th class="px-6 py-3.5">Gender / Age</th>
+                                    <th class="px-6 py-3.5">Contact Number</th>
+                                    <th class="px-6 py-3.5">Email</th>
+                                    <th class="px-6 py-3.5">Created By</th>
+                                    <th class="px-6 py-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="7" class="text-center py-8 text-slate-400">Loading patients...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: DOCTORS -->
+            <section id="tab-doctors" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="relative flex-1 max-w-md">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="doctorSearchInput" onkeyup="filterDoctors()" placeholder="Search doctors by name, specialty, or email..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <button onclick="openModal('doctorModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Register Doctor</span>
+                    </button>
+                </div>
+
+                <div id="doctorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="col-span-full text-center py-12 text-slate-400">Loading doctors directory...</div>
+                </div>
+            </section>
+
+            <!-- TAB 4: MAPPINGS -->
+            <section id="tab-mappings" class="tab-content hidden space-y-6">
+                <!-- Assign Form Card -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i data-lucide="user-check" class="w-5 h-5 text-indigo-600"></i>
+                        <h4 class="font-bold text-sm text-slate-900">Assign Doctor to Patient</h4>
+                    </div>
+                    <form id="assignDoctorForm" onsubmit="handleAssignDoctor(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Select Patient *</label>
+                            <select id="assignPatientSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="">Choose patient...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Select Doctor *</label>
+                            <select id="assignDoctorSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="">Choose doctor...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Clinical Notes (Optional)</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="assignNotesInput" placeholder="Reason for assignment..." class="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
+                                    Assign
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- All Assignments Table -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i>
+                            <h4 class="font-bold text-sm text-slate-800">Active Patient-Doctor Assignments</h4>
+                        </div>
+                        <span id="mappingCountBadge" class="bg-blue-50 text-blue-700 font-bold px-2.5 py-1 rounded-full text-[11px]">0 Active</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-3.5">Mapping ID</th>
+                                    <th class="px-6 py-3.5">Patient Details</th>
+                                    <th class="px-6 py-3.5">Assigned Doctor</th>
+                                    <th class="px-6 py-3.5">Specialization</th>
+                                    <th class="px-6 py-3.5">Assigned At</th>
+                                    <th class="px-6 py-3.5">Clinical Notes</th>
+                                    <th class="px-6 py-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mappingsTableBody" class="divide-y divide-slate-100">
+                                <tr>
+                                    <td colspan="7" class="text-center py-8 text-slate-400">Loading assignments...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- AUTH MODAL (Login & Register) -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-6 bg-gradient-to-tr from-blue-700 to-indigo-600 text-white text-center relative">
+                <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-white/70 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-md">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 id="authModalTitle" class="text-xl font-bold">Authentication Required</h3>
+                <p id="authModalSubtitle" class="text-xs text-blue-100 mt-1">Sign in with your healthcare credentials to access records</p>
+            </div>
+
+            <!-- Auth Form -->
+            <div class="p-6 space-y-4">
+                <div class="flex bg-slate-100 p-1 rounded-xl">
+                    <button onclick="setAuthMode('login')" id="authTabLogin" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all">Sign In</button>
+                    <button onclick="setAuthMode('register')" id="authTabRegister" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">Register</button>
+                </div>
+
+                <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+                    <div id="registerNameGroup" class="hidden">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Full Name</label>
+                        <input type="text" id="authNameInput" placeholder="Dr. John Doe" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Email Address</label>
+                        <input type="email" id="authEmailInput" required placeholder="name@healthcare.com" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+                        <input type="password" id="authPasswordInput" required minlength="6" placeholder="••••••••" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-500/20">
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- One-Click Demo Account Button -->
+                <div class="pt-2 border-t border-slate-100">
+                    <button onclick="fillDemoCredentials()" type="button" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                        <span>Auto-Fill Demo Admin Account</span>
+                    </button>
+                    <p class="text-[10px] text-center text-slate-400 mt-1">Pre-loads: intern@healthcare.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATIENT MODAL (Add / Edit) -->
+    <div id="patientModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <h3 id="patientModalTitle" class="text-base font-bold text-slate-900">Add New Patient</h3>
+                </div>
+                <button onclick="closeModal('patientModal')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="patientForm" onsubmit="handlePatientSubmit(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+                <input type="hidden" id="patientEditId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Patient Full Name *</label>
+                        <input type="text" id="patientNameInput" required placeholder="e.g. Jane Smith" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Date of Birth</label>
+                        <input type="date" id="patientDobInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Age</label>
+                        <input type="number" id="patientAgeInput" min="0" max="150" placeholder="Auto-computed if DOB set" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Gender *</label>
+                        <select id="patientGenderSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Contact Number *</label>
+                        <input type="text" id="patientContactInput" required placeholder="+1-555-0199" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Email (Optional)</label>
+                        <input type="email" id="patientEmailInput" placeholder="patient@example.com" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Residential Address</label>
+                        <textarea id="patientAddressInput" rows="2" placeholder="Street, City, State..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Medical History / Clinical Notes</label>
+                        <textarea id="patientHistoryInput" rows="2" placeholder="Allergies, chronic conditions, current prescriptions..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('patientModal')" class="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm">Save Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DOCTOR MODAL (Add / Edit) -->
+    <div id="doctorModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                    </div>
+                    <h3 id="doctorModalTitle" class="text-base font-bold text-slate-900">Add New Doctor</h3>
+                </div>
+                <button onclick="closeModal('doctorModal')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+                <input type="hidden" id="doctorEditId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Doctor Full Name *</label>
+                        <input type="text" id="doctorNameInput" required placeholder="e.g. Gregory House" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Medical Specialization *</label>
+                        <input type="text" id="doctorSpecializationInput" required placeholder="e.g. Cardiology, Neurology, Diagnostics" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Contact Phone *</label>
+                        <input type="text" id="doctorContactInput" required placeholder="+1-555-0300" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Email Address *</label>
+                        <input type="email" id="doctorEmailInput" required placeholder="doctor@hospital.org" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Years of Experience</label>
+                        <input type="number" id="doctorExperienceInput" min="0" max="80" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Hospital Affiliation</label>
+                        <input type="text" id="doctorHospitalInput" placeholder="e.g. General Hospital" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('doctorModal')" class="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm">Save Doctor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PATIENT DETAILS MODAL (With Assigned Doctors) -->
+    <div id="patientDetailsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold" id="detailPatientAvatar">P</div>
+                    <div>
+                        <h3 id="detailPatientName" class="text-base font-bold text-slate-900">Patient Details</h3>
+                        <p id="detailPatientSubtitle" class="text-xs text-slate-500">ID: #0</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('patientDetailsModal')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
+                    <div>
+                        <span class="text-slate-400 block font-semibold">Gender & Age:</span>
+                        <span id="detailPatientGenderAge" class="font-bold text-slate-800">Male, 35</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block font-semibold">Contact:</span>
+                        <span id="detailPatientContact" class="font-bold text-slate-800">+1-555-0100</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400 block font-semibold">Email:</span>
+                        <span id="detailPatientEmail" class="font-bold text-slate-800">patient@example.com</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400 block font-semibold">Address:</span>
+                        <span id="detailPatientAddress" class="text-slate-700">None</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400 block font-semibold">Medical History:</span>
+                        <span id="detailPatientHistory" class="text-slate-700">No history logged</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-2 flex items-center justify-between">
+                        <span>Assigned Doctors</span>
+                        <span id="detailAssignedCount" class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                    </h4>
+                    <div id="detailAssignedDoctorsList" class="space-y-2">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Dashboard App Logic -->
+    <script>
+        // State
+        const API_BASE = '/api';
+        let currentTab = 'dashboard';
+        let cachedPatients = [];
+        let cachedDoctors = [];
+        let cachedMappings = [];
+        let currentUser = null;
+        let authMode = 'login';
+
+        // Initialize icons
+        function refreshIcons() {
+            lucide.createIcons();
+        }
+
+        // Token management
+        function getToken() {
+            return localStorage.getItem('care_access_token');
+        }
+
+        function setToken(token) {
+            localStorage.setItem('care_access_token', token);
+        }
+
+        function removeToken() {
+            localStorage.removeItem('care_access_token');
+        }
+
+        // API Fetch Wrapper
+        async function apiCall(endpoint, options = {}) {
+            const token = getToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                ...(options.headers || {})
+            };
+
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 401) {
+                // Token expired or invalid
+                removeToken();
+                updateAuthUI();
+                showToast('Authentication required. Please sign in.', 'error');
+                openModal('authModal');
+                throw new Error('Unauthorized');
+            }
+
+            const data = await response.json();
+            if (!response.ok) {
+                const message = data.message || (data.errors ? JSON.stringify(data.errors) : 'An error occurred');
+                throw new Error(message);
+            }
+            return data;
+        }
+
+        // Switch Tabs
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-700', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeTabEl = document.getElementById(`tab-${tabId}`);
+            const activeNavEl = document.getElementById(`nav-${tabId}`);
+            if (activeTabEl) activeTabEl.classList.remove('hidden');
+            if (activeNavEl) {
+                activeNavEl.classList.add('bg-blue-50', 'text-blue-700', 'shadow-sm');
+                activeNavEl.classList.remove('text-slate-600');
+            }
+
+            const titles = {
+                dashboard: ['System Overview', 'Real-time healthcare metrics and record management'],
+                patients: ['Patient Records', 'Manage confidential patient medical profiles'],
+                doctors: ['Doctors Directory', 'Certified medical practitioners and clinical specialties'],
+                mappings: ['Patient-Doctor Assignments', 'Active doctor consultations and mapping records'],
+            };
+
+            if (titles[tabId]) {
+                document.getElementById('pageTitle').textContent = titles[tabId][0];
+                document.getElementById('pageSubtitle').textContent = titles[tabId][1];
+            }
+
+            refreshCurrentTab();
+        }
+
+        // Refresh Data
+        async function refreshCurrentTab() {
+            await checkHealth();
+            if (currentTab === 'dashboard') {
+                await loadAllStats();
+            } else if (currentTab === 'patients') {
+                await loadPatients();
+            } else if (currentTab === 'doctors') {
+                await loadDoctors();
+            } else if (currentTab === 'mappings') {
+                await loadMappings();
+                await populateMappingSelects();
+            }
+            refreshIcons();
+        }
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_BASE}/health/`);
+                const data = await res.json();
+                if (data.status === 'healthy') {
+                    document.getElementById('healthStatusText').textContent = 'PostgreSQL Online';
+                    document.getElementById('healthPulse').className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                }
+            } catch (e) {
+                document.getElementById('healthStatusText').textContent = 'Database Degraded';
+                document.getElementById('healthPulse').className = 'w-2 h-2 rounded-full bg-rose-500';
+            }
+        }
+
+        // Load Current User Profile
+        async function loadCurrentUser() {
+            const token = getToken();
+            if (!token) {
+                updateAuthUI();
+                return;
+            }
+            try {
+                const res = await apiCall('/auth/me/');
+                currentUser = res.user;
+                updateAuthUI();
+            } catch (e) {
+                currentUser = null;
+                updateAuthUI();
+            }
+        }
+
+        function updateAuthUI() {
+            const userNameEl = document.getElementById('userName');
+            const userEmailEl = document.getElementById('userEmail');
+            const userAvatarEl = document.getElementById('userAvatar');
+            const authHeaderActions = document.getElementById('authHeaderActions');
+
+            if (currentUser) {
+                userNameEl.textContent = currentUser.name;
+                userEmailEl.textContent = currentUser.email;
+                userAvatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+                authHeaderActions.innerHTML = `
+                    <button onclick="logout()" class="px-3 py-1.5 border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        <span>Logout</span>
+                    </button>
+                `;
+            } else {
+                userNameEl.textContent = 'Not Logged In';
+                userEmailEl.textContent = 'Sign in to manage records';
+                userAvatarEl.textContent = '?';
+                authHeaderActions.innerHTML = `
+                    <button onclick="openModal('authModal')" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-1.5">
+                        <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+                        <span>Sign In</span>
+                    </button>
+                `;
+            }
+            refreshIcons();
+        }
+
+        // Load Stats for Dashboard
+        async function loadAllStats() {
+            try {
+                const [patientsRes, doctorsRes, mappingsRes] = await Promise.all([
+                    apiCall('/patients/').catch(() => ({ data: [] })),
+                    apiCall('/doctors/').catch(() => ({ data: [] })),
+                    apiCall('/mappings/').catch(() => ({ data: [] }))
+                ]);
+
+                cachedPatients = patientsRes.data || [];
+                cachedDoctors = doctorsRes.data || [];
+                cachedMappings = mappingsRes.data || [];
+
+                document.getElementById('statPatientsCount').textContent = cachedPatients.length;
+                document.getElementById('statDoctorsCount').textContent = cachedDoctors.length;
+                document.getElementById('statMappingsCount').textContent = cachedMappings.length;
+
+                renderRecentMappings();
+            } catch (err) {
+                console.error('Stats error:', err);
+            }
+        }
+
+        function renderRecentMappings() {
+            const body = document.getElementById('recentMappingsBody');
+            if (!cachedMappings || cachedMappings.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No active assignments found. Assign a doctor to get started!</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = cachedMappings.slice(0, 5).map(m => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-6 py-3.5 font-bold text-slate-800">${escapeHtml(m.patient.name)}</td>
+                    <td class="px-6 py-3.5 text-blue-700 font-semibold">Dr. ${escapeHtml(m.doctor.name)}</td>
+                    <td class="px-6 py-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold">${escapeHtml(m.doctor.specialization)}</span></td>
+                    <td class="px-6 py-3.5 text-slate-500">${new Date(m.assigned_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-3.5 text-slate-600 truncate max-w-xs">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">None</span>'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Load Patients
+        async function loadPatients() {
+            try {
+                const res = await apiCall('/patients/');
+                cachedPatients = res.data || [];
+                renderPatientsTable(cachedPatients);
+            } catch (e) {
+                document.getElementById('patientsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500 font-medium">${e.message}</td></tr>`;
+            }
+        }
+
+        function renderPatientsTable(patients) {
+            const body = document.getElementById('patientsTableBody');
+            if (patients.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No patients created yet. Click "New Patient" to add one.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = patients.map(p => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-6 py-3.5 font-mono text-slate-400 text-[11px]">#${p.id}</td>
+                    <td class="px-6 py-3.5 font-bold text-slate-900">${escapeHtml(p.name)}</td>
+                    <td class="px-6 py-3.5 capitalize text-slate-600">${p.gender} ${p.age ? `• ${p.age} yrs` : ''}</td>
+                    <td class="px-6 py-3.5 font-mono text-slate-700">${escapeHtml(p.contact_number)}</td>
+                    <td class="px-6 py-3.5 text-slate-600">${p.email ? escapeHtml(p.email) : '-'}</td>
+                    <td class="px-6 py-3.5 text-[11px] text-slate-500">${escapeHtml(p.created_by_name || 'You')}</td>
+                    <td class="px-6 py-3.5 text-right space-x-1">
+                        <button onclick="viewPatientDetail(${p.id})" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors" title="View Details">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="editPatient(${p.id})" class="text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors" title="Edit Patient">
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deletePatient(${p.id})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors" title="Delete Patient">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            refreshIcons();
+        }
+
+        function filterPatients() {
+            const query = document.getElementById('patientSearchInput').value.toLowerCase();
+            const filtered = cachedPatients.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                p.contact_number.toLowerCase().includes(query) ||
+                (p.email && p.email.toLowerCase().includes(query))
+            );
+            renderPatientsTable(filtered);
+        }
+
+        // View Patient Details with assigned doctors
+        async function viewPatientDetail(id) {
+            try {
+                const res = await apiCall(`/patients/${id}/`);
+                const p = res.data;
+                document.getElementById('detailPatientAvatar').textContent = p.name.charAt(0).toUpperCase();
+                document.getElementById('detailPatientName').textContent = p.name;
+                document.getElementById('detailPatientSubtitle').textContent = `Patient ID: #${p.id} • Created by ${p.created_by_name || 'You'}`;
+                document.getElementById('detailPatientGenderAge').textContent = `${p.gender.toUpperCase()} • ${p.age ? p.age + ' years old' : 'Age not specified'}`;
+                document.getElementById('detailPatientContact').textContent = p.contact_number;
+                document.getElementById('detailPatientEmail').textContent = p.email || 'None';
+                document.getElementById('detailPatientAddress').textContent = p.address || 'No address provided';
+                document.getElementById('detailPatientHistory').textContent = p.medical_history || 'No medical history recorded';
+
+                const docList = document.getElementById('detailAssignedDoctorsList');
+                const countBadge = document.getElementById('detailAssignedCount');
+                countBadge.textContent = p.assigned_doctors ? p.assigned_doctors.length : 0;
+
+                if (!p.assigned_doctors || p.assigned_doctors.length === 0) {
+                    docList.innerHTML = `<p class="text-slate-400 py-3 text-center">No doctors currently assigned to this patient.</p>`;
+                } else {
+                    docList.innerHTML = p.assigned_doctors.map(d => `
+                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">Dr</div>
+                                <div>
+                                    <p class="font-bold text-slate-800">Dr. ${escapeHtml(d.doctor_name)}</p>
+                                    <p class="text-[10px] text-emerald-700 font-semibold">${escapeHtml(d.specialization)}</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-400">${new Date(d.assigned_at).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                }
+
+                openModal('patientDetailsModal');
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // Load Doctors
+        async function loadDoctors() {
+            try {
+                const res = await apiCall('/doctors/');
+                cachedDoctors = res.data || [];
+                renderDoctorsGrid(cachedDoctors);
+            } catch (e) {
+                document.getElementById('doctorsGrid').innerHTML = `<div class="col-span-full text-center py-6 text-rose-500 font-medium">${e.message}</div>`;
+            }
+        }
+
+        function renderDoctorsGrid(doctors) {
+            const grid = document.getElementById('doctorsGrid');
+            if (doctors.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400">No doctors registered yet. Click "Register Doctor" to add one.</div>`;
+                return;
+            }
+
+            grid.innerHTML = doctors.map(d => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                                    ${d.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-900 leading-tight">Dr. ${escapeHtml(d.name)}</h4>
+                                    <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                        ${escapeHtml(d.specialization)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="space-x-1">
+                                <button onclick="editDoctor(${d.id})" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteDoctor(${d.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                            <p class="flex items-center space-x-2">
+                                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span>${escapeHtml(d.contact_number)}</span>
+                            </p>
+                            <p class="flex items-center space-x-2 truncate">
+                                <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span class="truncate">${escapeHtml(d.email)}</span>
+                            </p>
+                            <p class="flex items-center space-x-2">
+                                <i data-lucide="building" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span>${escapeHtml(d.hospital_affiliation || 'Independent Practice')}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                        <span>Experience:</span>
+                        <span class="text-slate-900 font-bold">${d.years_of_experience} Years</span>
+                    </div>
+                </div>
+            `).join('');
+            refreshIcons();
+        }
+
+        function filterDoctors() {
+            const query = document.getElementById('doctorSearchInput').value.toLowerCase();
+            const filtered = cachedDoctors.filter(d =>
+                d.name.toLowerCase().includes(query) ||
+                d.specialization.toLowerCase().includes(query) ||
+                d.email.toLowerCase().includes(query)
+            );
+            renderDoctorsGrid(filtered);
+        }
+
+        // Load Mappings
+        async function loadMappings() {
+            try {
+                const res = await apiCall('/mappings/');
+                cachedMappings = res.data || [];
+                renderMappingsTable(cachedMappings);
+                document.getElementById('mappingCountBadge').textContent = `${cachedMappings.length} Active`;
+            } catch (e) {
+                document.getElementById('mappingsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500 font-medium">${e.message}</td></tr>`;
+            }
+        }
+
+        function renderMappingsTable(mappings) {
+            const body = document.getElementById('mappingsTableBody');
+            if (mappings.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No patient-doctor mappings yet. Use the form above to assign a doctor.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = mappings.map(m => `
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-6 py-3.5 font-mono text-slate-400 text-[11px]">#${m.id}</td>
+                    <td class="px-6 py-3.5 font-bold text-slate-900">${escapeHtml(m.patient.name)} <span class="text-slate-400 text-[10px]">(${m.patient.gender})</span></td>
+                    <td class="px-6 py-3.5 text-blue-700 font-semibold">Dr. ${escapeHtml(m.doctor.name)}</td>
+                    <td class="px-6 py-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold">${escapeHtml(m.doctor.specialization)}</span></td>
+                    <td class="px-6 py-3.5 text-slate-500">${new Date(m.assigned_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-3.5 text-slate-600 truncate max-w-xs">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">None</span>'}</td>
+                    <td class="px-6 py-3.5 text-right">
+                        <button onclick="removeMapping(${m.id})" class="text-rose-500 hover:bg-rose-50 px-2.5 py-1 rounded-lg font-bold text-xs transition-colors">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            refreshIcons();
+        }
+
+        async function populateMappingSelects() {
+            try {
+                if (cachedPatients.length === 0) {
+                    const pRes = await apiCall('/patients/');
+                    cachedPatients = pRes.data || [];
+                }
+                if (cachedDoctors.length === 0) {
+                    const dRes = await apiCall('/doctors/');
+                    cachedDoctors = dRes.data || [];
+                }
+
+                const pSelect = document.getElementById('assignPatientSelect');
+                const dSelect = document.getElementById('assignDoctorSelect');
+
+                pSelect.innerHTML = `<option value="">Choose patient...</option>` + cachedPatients.map(p => `
+                    <option value="${p.id}">${escapeHtml(p.name)} (#${p.id})</option>
+                `).join('');
+
+                dSelect.innerHTML = `<option value="">Choose doctor...</option>` + cachedDoctors.map(d => `
+                    <option value="${d.id}">Dr. ${escapeHtml(d.name)} (${escapeHtml(d.specialization)})</option>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Handle Assign Doctor
+        async function handleAssignDoctor(e) {
+            e.preventDefault();
+            const patientId = document.getElementById('assignPatientSelect').value;
+            const doctorId = document.getElementById('assignDoctorSelect').value;
+            const notes = document.getElementById('assignNotesInput').value;
+
+            try {
+                await apiCall('/mappings/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        patient_id: parseInt(patientId),
+                        doctor_id: parseInt(doctorId),
+                        notes: notes
+                    })
+                });
+                showToast('Doctor successfully assigned to patient!', 'success');
+                document.getElementById('assignNotesInput').value = '';
+                await loadMappings();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // Remove Mapping
+        async function removeMapping(id) {
+            if (!confirm('Are you sure you want to remove this patient-doctor assignment?')) return;
+            try {
+                await apiCall(`/mappings/${id}/`, { method: 'DELETE' });
+                showToast('Doctor removed from patient.', 'success');
+                await loadMappings();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // Patient Modal & Submission
+        function editPatient(id) {
+            const p = cachedPatients.find(item => item.id === id);
+            if (!p) return;
+            document.getElementById('patientEditId').value = p.id;
+            document.getElementById('patientNameInput').value = p.name;
+            document.getElementById('patientDobInput').value = p.date_of_birth || '';
+            document.getElementById('patientAgeInput').value = p.age || '';
+            document.getElementById('patientGenderSelect').value = p.gender;
+            document.getElementById('patientContactInput').value = p.contact_number;
+            document.getElementById('patientEmailInput').value = p.email || '';
+            document.getElementById('patientAddressInput').value = p.address || '';
+            document.getElementById('patientHistoryInput').value = p.medical_history || '';
+            document.getElementById('patientModalTitle').textContent = `Edit Patient #${p.id}`;
+            openModal('patientModal');
+        }
+
+        async function handlePatientSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('patientEditId').value;
+            const payload = {
+                name: document.getElementById('patientNameInput').value,
+                date_of_birth: document.getElementById('patientDobInput').value || null,
+                age: document.getElementById('patientAgeInput').value ? parseInt(document.getElementById('patientAgeInput').value) : null,
+                gender: document.getElementById('patientGenderSelect').value,
+                contact_number: document.getElementById('patientContactInput').value,
+                email: document.getElementById('patientEmailInput').value || null,
+                address: document.getElementById('patientAddressInput').value || null,
+                medical_history: document.getElementById('patientHistoryInput').value || null,
+            };
+
+            try {
+                if (editId) {
+                    await apiCall(`/patients/${editId}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    showToast('Patient updated successfully!', 'success');
+                } else {
+                    await apiCall('/patients/', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showToast('Patient created successfully!', 'success');
+                }
+                closeModal('patientModal');
+                document.getElementById('patientForm').reset();
+                document.getElementById('patientEditId').value = '';
+                await loadPatients();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function deletePatient(id) {
+            if (!confirm('Are you sure you want to delete this patient record?')) return;
+            try {
+                await apiCall(`/patients/${id}/`, { method: 'DELETE' });
+                showToast('Patient deleted successfully.', 'success');
+                await loadPatients();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // Doctor Modal & Submission
+        function editDoctor(id) {
+            const d = cachedDoctors.find(item => item.id === id);
+            if (!d) return;
+            document.getElementById('doctorEditId').value = d.id;
+            document.getElementById('doctorNameInput').value = d.name;
+            document.getElementById('doctorSpecializationInput').value = d.specialization;
+            document.getElementById('doctorContactInput').value = d.contact_number;
+            document.getElementById('doctorEmailInput').value = d.email;
+            document.getElementById('doctorExperienceInput').value = d.years_of_experience;
+            document.getElementById('doctorHospitalInput').value = d.hospital_affiliation || '';
+            document.getElementById('doctorModalTitle').textContent = `Edit Doctor #${d.id}`;
+            openModal('doctorModal');
+        }
+
+        async function handleDoctorSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('doctorEditId').value;
+            const payload = {
+                name: document.getElementById('doctorNameInput').value,
+                specialization: document.getElementById('doctorSpecializationInput').value,
+                contact_number: document.getElementById('doctorContactInput').value,
+                email: document.getElementById('doctorEmailInput').value,
+                years_of_experience: parseInt(document.getElementById('doctorExperienceInput').value) || 0,
+                hospital_affiliation: document.getElementById('doctorHospitalInput').value || null,
+            };
+
+            try {
+                if (editId) {
+                    await apiCall(`/doctors/${editId}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    showToast('Doctor updated successfully!', 'success');
+                } else {
+                    await apiCall('/doctors/', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showToast('Doctor registered successfully!', 'success');
+                }
+                closeModal('doctorModal');
+                document.getElementById('doctorForm').reset();
+                document.getElementById('doctorEditId').value = '';
+                await loadDoctors();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function deleteDoctor(id) {
+            if (!confirm('Are you sure you want to delete this doctor record?')) return;
+            try {
+                await apiCall(`/doctors/${id}/`, { method: 'DELETE' });
+                showToast('Doctor deleted successfully.', 'success');
+                await loadDoctors();
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
+        // Auth Submission
+        function setAuthMode(mode) {
+            authMode = mode;
+            const tabLogin = document.getElementById('authTabLogin');
+            const tabReg = document.getElementById('authTabRegister');
+            const nameGrp = document.getElementById('registerNameGroup');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const title = document.getElementById('authModalTitle');
+            const sub = document.getElementById('authModalSubtitle');
+
+            if (mode === 'login') {
+                tabLogin.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all';
+                tabReg.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+                nameGrp.classList.add('hidden');
+                submitBtn.textContent = 'Sign In';
+                title.textContent = 'Welcome Back';
+                sub.textContent = 'Sign in with your email and password';
+            } else {
+                tabReg.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all';
+                tabLogin.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+                nameGrp.classList.remove('hidden');
+                submitBtn.textContent = 'Create Account';
+                title.textContent = 'Register New User';
+                sub.textContent = 'Create your healthcare developer account';
+            }
+        }
+
+        function fillDemoCredentials() {
+            setAuthMode('login');
+            document.getElementById('authEmailInput').value = 'intern@healthcare.com';
+            document.getElementById('authPasswordInput').value = 'YourNewPassword123';
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmailInput').value;
+            const password = document.getElementById('authPasswordInput').value;
+
+            try {
+                if (authMode === 'login') {
+                    const res = await apiCall('/auth/login/', {
+                        method: 'POST',
+                        body: JSON.stringify({ email, password })
+                    });
+                    setToken(res.access);
+                    currentUser = res.user;
+                    showToast('Successfully signed in!', 'success');
+                } else {
+                    const name = document.getElementById('authNameInput').value;
+                    const res = await apiCall('/auth/register/', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, email, password })
+                    });
+                    setToken(res.access);
+                    currentUser = res.user;
+                    showToast('Account created successfully!', 'success');
+                }
+
+                closeModal('authModal');
+                updateAuthUI();
+                await refreshCurrentTab();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function logout() {
+            removeToken();
+            currentUser = null;
+            updateAuthUI();
+            showToast('You have been logged out.', 'info');
+            switchTab('dashboard');
+        }
+
+        // Modal Helpers
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('hidden');
+                refreshIcons();
+            }
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        }
+
+        // Toast Helpers
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-600 text-white shadow-emerald-500/20',
+                error: 'bg-rose-600 text-white shadow-rose-500/20',
+                info: 'bg-slate-900 text-white shadow-slate-900/20'
+            };
+            const icons = {
+                success: 'check-circle-2',
+                error: 'alert-circle',
+                info: 'info'
+            };
+
+            toast.className = `${colors[type] || colors.info} px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 text-xs font-semibold pointer-events-auto transition-all transform translate-y-2 opacity-0 duration-200`;
+            toast.innerHTML = `
+                <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i>
+                <span>${escapeHtml(message)}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 200);
+            }, 3500);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('hidden');
+        });
+
+        // App Boot
+        window.addEventListener('DOMContentLoaded', async () => {
+            refreshIcons();
+            await loadCurrentUser();
+            await refreshCurrentTab();
+        });
+    </script>
+</body>
+</html>

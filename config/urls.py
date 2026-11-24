@@ -3,6 +3,7 @@ URL configuration for healthcare backend project.
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 from django.db import connection
 from django.utils import timezone
 from rest_framework.response import Response
@@ -54,6 +55,7 @@ class ApiRootView(APIView):
                 'redoc': request.build_absolute_uri('/api/redoc/'),
                 'schema': request.build_absolute_uri('/api/schema/'),
             },
+            'portal': request.build_absolute_uri('/'),
             'health': request.build_absolute_uri('/api/health/'),
             'endpoints': {
                 'auth': {
@@ -69,13 +71,17 @@ class ApiRootView(APIView):
 
 
 urlpatterns = [
+    # Interactive Frontend Portal
+    path('', TemplateView.as_view(template_name='index.html'), name='portal-dashboard'),
+    path('dashboard/', TemplateView.as_view(template_name='index.html'), name='portal-dashboard-alias'),
+
+    # Django Administration
     path('admin/', admin.site.urls),
 
     # Health Check
     path('api/health/', HealthCheckView.as_view(), name='health-check'),
 
     # API Root
-    path('', ApiRootView.as_view(), name='api-root-index'),
     path('api/', ApiRootView.as_view(), name='api-root'),
 
     # Application Endpoints
