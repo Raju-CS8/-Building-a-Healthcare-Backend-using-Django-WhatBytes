@@ -1,0 +1,32 @@
+# Environment variables (Crucial for security)
+.env
+.env.local
+.env.*.local
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+*.sqlite3
+*.db
+staticfiles/
+media/
+
+# Logs & temporary files
+*.log
+*.pot
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

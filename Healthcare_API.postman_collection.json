@@ -1,0 +1,598 @@
+{
+	"info": {
+		"_postman_id": "healthcare-backend-api-v1",
+		"name": "Healthcare Management System API",
+		"description": "Comprehensive Postman collection for testing the Healthcare Management System Django REST API.\nIncludes JWT Authentication, Patient Management, Doctor Management, and Patient-Doctor Mapping endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "patient_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "doctor_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "mapping_id",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dr. Johnathan Smith\",\n    \"email\": \"jsmith@healthcare.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register",
+								""
+							]
+						},
+						"description": "Registers a new user with name, email, and password."
+					},
+					"response": []
+				},
+				{
+					"name": "Login User (Saves JWT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set('access_token', jsonData.access);",
+									"    console.log('JWT Access Token saved successfully');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"jsmith@healthcare.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login",
+								""
+							]
+						},
+						"description": "Logs in the user and automatically saves the JWT access token into the collection variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me",
+								""
+							]
+						},
+						"description": "Fetches profile info of the currently logged-in user."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Patient Management",
+			"item": [
+				{
+					"name": "Add Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.id) {",
+									"    pm.collectionVariables.set('patient_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sarah Connor\",\n    \"date_of_birth\": \"1985-05-12\",\n    \"age\": 41,\n    \"gender\": \"female\",\n    \"contact_number\": \"+1-555-0199\",\n    \"email\": \"sarah.c@example.com\",\n    \"address\": \"742 Evergreen Terrace, Springfield\",\n    \"medical_history\": \"No known drug allergies. Mild asthma.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/patients/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								""
+							]
+						},
+						"description": "Creates a new patient associated with the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve All Patients (Created by User)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/patients/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								""
+							]
+						},
+						"description": "Retrieves all patients created by the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Patient Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/patients/{{patient_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"{{patient_id}}",
+								""
+							]
+						},
+						"description": "Retrieves full details of a specific patient including assigned doctors."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Patient Details",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sarah Connor Updated\",\n    \"date_of_birth\": \"1985-05-12\",\n    \"age\": 41,\n    \"gender\": \"female\",\n    \"contact_number\": \"+1-555-9988\",\n    \"email\": \"sarah.updated@example.com\",\n    \"address\": \"900 Ocean Drive, Miami FL\",\n    \"medical_history\": \"Updated: Asthma under control with inhaler.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/patients/{{patient_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"{{patient_id}}",
+								""
+							]
+						},
+						"description": "Updates details of a patient."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Patient Record",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/patients/{{patient_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"{{patient_id}}",
+								""
+							]
+						},
+						"description": "Deletes a patient record."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Doctor Management",
+			"item": [
+				{
+					"name": "Add Doctor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.id) {",
+									"    pm.collectionVariables.set('doctor_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Gregory House\",\n    \"specialization\": \"Infectious Disease & Nephrology\",\n    \"contact_number\": \"+1-555-0300\",\n    \"email\": \"drhouse@diagnostics.org\",\n    \"years_of_experience\": 22,\n    \"hospital_affiliation\": \"Princeton-Plainsboro Teaching Hospital\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								""
+							]
+						},
+						"description": "Adds a new doctor record."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve All Doctors",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								""
+							]
+						},
+						"description": "Retrieves all doctors."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Doctor Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								""
+							]
+						},
+						"description": "Retrieves details of a doctor along with assigned patients."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Doctor Details",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Gregory House MD\",\n    \"specialization\": \"Diagnostic Medicine & Nephrology\",\n    \"contact_number\": \"+1-555-0399\",\n    \"email\": \"drhouse@diagnostics.org\",\n    \"years_of_experience\": 23,\n    \"hospital_affiliation\": \"Princeton-Plainsboro Teaching Hospital\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								""
+							]
+						},
+						"description": "Updates doctor information."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Doctor Record",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/doctors/{{doctor_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"doctors",
+								"{{doctor_id}}",
+								""
+							]
+						},
+						"description": "Deletes a doctor record."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Patient-Doctor Mapping",
+			"item": [
+				{
+					"name": "Assign Doctor to Patient",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.id) {",
+									"    pm.collectionVariables.set('mapping_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"patient_id\": {{patient_id}},\n    \"doctor_id\": {{doctor_id}},\n    \"notes\": \"Assigned for specialized diagnostic review.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/mappings/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mappings",
+								""
+							]
+						},
+						"description": "Assigns a doctor to a patient."
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve All Mappings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/mappings/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mappings",
+								""
+							]
+						},
+						"description": "Retrieves all patient-doctor mappings."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doctors Assigned to Specific Patient",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/mappings/{{patient_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mappings",
+								"{{patient_id}}",
+								""
+							]
+						},
+						"description": "Retrieves all doctors assigned to a specific patient."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Doctor from Patient (Delete Mapping)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/mappings/{{mapping_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"mappings",
+								"{{mapping_id}}",
+								""
+							]
+						},
+						"description": "Removes a doctor from a patient by deleting the mapping record."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
