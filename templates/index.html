@@ -1,29 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-zinc-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CareSync | Healthcare Management Portal</title>
+    <title>CareSync EHR | Clinical Operations & Provider Registry</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            900: '#1e3a8a',
+                        zinc: {
+                            850: '#1f1f23',
+                            950: '#09090b',
+                        },
+                        clinical: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
                         }
                     }
                 }
@@ -31,550 +37,674 @@
         }
     </script>
     <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-        }
+        /* Custom scrollbar and tight table typography */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+<body class="h-full font-sans text-zinc-900 antialiased flex flex-col overflow-hidden bg-zinc-100">
 
-    <!-- Mobile Header -->
-    <div class="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-        <div class="flex items-center space-x-2">
-            <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md shadow-blue-500/20">
-                <i data-lucide="activity" class="w-5 h-5"></i>
-            </div>
-            <span class="font-bold text-lg text-slate-900 tracking-tight">CareSync</span>
-        </div>
-        <button id="mobileMenuBtn" class="text-slate-600 p-2 hover:bg-slate-100 rounded-lg">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
-    </div>
-
-    <!-- Sidebar Navigation -->
-    <aside id="sidebar" class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen sticky top-0 h-screen z-30">
-        <div>
-            <!-- Logo Header -->
-            <div class="p-6 border-b border-slate-100 flex items-center space-x-3">
-                <div class="bg-gradient-to-tr from-blue-700 to-blue-500 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
-                    <i data-lucide="cross" class="w-6 h-6"></i>
+    <!-- Top Global App Bar -->
+    <header class="h-14 bg-white border-b border-zinc-200 px-5 flex items-center justify-between shrink-0 z-30 select-none">
+        <!-- Left: System Identity & Clinical Context -->
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-mono font-bold text-sm shadow-sm">
+                    CS
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-xl text-slate-900 tracking-tight leading-none">CareSync</h1>
-                    <p class="text-xs text-blue-600 font-semibold tracking-wider mt-1 uppercase">Healthcare Core</p>
-                </div>
-            </div>
-
-            <!-- Navigation Links -->
-            <nav class="p-4 space-y-1.5">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-blue-50 text-blue-700 shadow-sm">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span>Dashboard</span>
-                </button>
-                <button onclick="switchTab('patients')" id="nav-patients" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                    <i data-lucide="users" class="w-5 h-5"></i>
-                    <span>Patients</span>
-                </button>
-                <button onclick="switchTab('doctors')" id="nav-doctors" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
-                    <span>Doctors Directory</span>
-                </button>
-                <button onclick="switchTab('mappings')" id="nav-mappings" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
-                    <span>Assignments</span>
-                </button>
-                <a href="/api/docs/" target="_blank" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all">
-                    <span class="flex items-center space-x-3">
-                        <i data-lucide="code-2" class="w-5 h-5 text-indigo-500"></i>
-                        <span>Swagger OpenAPI</span>
-                    </span>
-                    <i data-lucide="external-link" class="w-4 h-4 text-slate-400"></i>
-                </a>
-            </nav>
-        </div>
-
-        <!-- Sidebar Bottom / User Profile -->
-        <div class="p-4 border-t border-slate-100 space-y-3">
-            <div id="userInfoBox" class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
-                <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm" id="userAvatar">U</div>
-                    <div class="truncate">
-                        <p class="text-xs font-bold text-slate-800 truncate" id="userName">Not Logged In</p>
-                        <p class="text-[11px] text-slate-500 truncate" id="userEmail">guest@healthcare.com</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-sm text-zinc-900 tracking-tight">CareSync Clinical</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-zinc-100 text-zinc-600 border border-zinc-200">EHR-v1</span>
                     </div>
                 </div>
-                <button onclick="logout()" title="Logout" class="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-white rounded-lg transition-colors">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                </button>
             </div>
-            <div class="flex items-center justify-between px-2 text-[11px] text-slate-500">
+
+            <div class="hidden md:flex items-center space-x-2 text-xs text-zinc-500 border-l border-zinc-200 pl-6 font-mono">
                 <span class="flex items-center space-x-1.5">
-                    <span id="healthPulse" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span id="healthStatusText">PostgreSQL Online</span>
+                    <span id="globalPulse" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span id="globalDbStatus">PostgreSQL Online</span>
                 </span>
-                <span class="font-mono text-slate-400">v1.0.0</span>
+                <span class="text-zinc-300">•</span>
+                <span>DRF API 3.18</span>
             </div>
         </div>
-    </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-
-        <!-- Top Header Bar -->
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20 glass">
-            <div>
-                <h2 id="pageTitle" class="text-xl font-bold text-slate-900 tracking-tight">System Overview</h2>
-                <p id="pageSubtitle" class="text-xs text-slate-500">Real-time healthcare metrics and record management</p>
+        <!-- Center: Search Filter Trigger -->
+        <div class="hidden lg:flex items-center w-80">
+            <div class="w-full relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="omniSearchInput" onkeyup="handleOmniSearch(event)" placeholder="Search patients, doctors, or MRN..." class="w-full bg-zinc-50 hover:bg-zinc-100/80 focus:bg-white pl-9 pr-8 py-1.5 rounded-md border border-zinc-200 text-xs text-zinc-800 placeholder-zinc-400 transition-all focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900">
+                <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 font-mono bg-zinc-200/60 px-1 rounded">Ctrl+K</kbd>
             </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="refreshCurrentTab()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Refresh Data">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                </button>
-                <div id="authHeaderActions">
-                    <!-- Dynamic auth buttons rendered via JS -->
-                </div>
+        </div>
+
+        <!-- Right: Actions & Provider Profile -->
+        <div class="flex items-center space-x-3">
+            <a href="/api/docs/" target="_blank" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-md transition-colors border border-transparent hover:border-zinc-200">
+                <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-500"></i>
+                <span>API Swagger</span>
+            </a>
+
+            <div class="h-4 w-px bg-zinc-200 hidden sm:block"></div>
+
+            <div id="authHeaderContainer" class="flex items-center space-x-2">
+                <!-- Dynamically populated -->
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Content Body -->
-        <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
+    <!-- App Body: Sidebar + Main Content -->
+    <div class="flex-1 flex overflow-hidden">
 
-            <!-- TAB 1: DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content space-y-6">
-                <!-- Metrics Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Patients</p>
-                            <h3 id="statPatientsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
-                            <p class="text-[11px] text-blue-600 font-medium mt-0.5">Created by your account</p>
-                        </div>
-                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                            <i data-lucide="users" class="w-6 h-6"></i>
-                        </div>
-                    </div>
+        <!-- Navigation Rail / Sidebar -->
+        <aside class="w-60 bg-white border-r border-zinc-200 flex flex-col justify-between shrink-0 select-none">
+            <div class="p-3 space-y-4">
+                <!-- Primary Navigation -->
+                <div class="space-y-1">
+                    <p class="px-3 text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Clinical Workspace</p>
+                    
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-colors bg-zinc-900 text-white shadow-sm">
+                        <span class="flex items-center space-x-2.5">
+                            <i data-lucide="gauge" class="w-4 h-4"></i>
+                            <span>Clinical Census</span>
+                        </span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300" id="badgeTotalRecords">0</span>
+                    </button>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Doctors</p>
-                            <h3 id="statDoctorsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
-                            <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Verified Practitioners</p>
-                        </div>
-                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                            <i data-lucide="stethoscope" class="w-6 h-6"></i>
-                        </div>
-                    </div>
+                    <button onclick="switchTab('patients')" id="nav-patients" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+                        <span class="flex items-center space-x-2.5">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                            <span>Patient Registry</span>
+                        </span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600" id="badgePatientCount">0</span>
+                    </button>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Assignments</p>
-                            <h3 id="statMappingsCount" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
-                            <p class="text-[11px] text-indigo-600 font-medium mt-0.5">Doctor-Patient mappings</p>
-                        </div>
-                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                            <i data-lucide="link-2" class="w-6 h-6"></i>
-                        </div>
-                    </div>
+                    <button onclick="switchTab('doctors')" id="nav-doctors" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+                        <span class="flex items-center space-x-2.5">
+                            <i data-lucide="stethoscope" class="w-4 h-4"></i>
+                            <span>Physician Roster</span>
+                        </span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600" id="badgeDoctorCount">0</span>
+                    </button>
 
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">API & DB Health</p>
-                            <h3 id="statHealthStatus" class="text-xl font-bold text-emerald-600 mt-1">Healthy</h3>
-                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">PostgreSQL 18 Connected</p>
-                        </div>
-                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                            <i data-lucide="database" class="w-6 h-6"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions Banner -->
-                <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl shadow-blue-900/10 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="space-y-1 text-center md:text-left">
-                        <h3 class="text-lg font-bold">Healthcare Management Core Active</h3>
-                        <p class="text-xs text-blue-100 max-w-xl">
-                            Fully functional REST API backend powered by Django REST Framework, SimpleJWT security, and PostgreSQL database storage.
-                        </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2.5 justify-center">
-                        <button onclick="openModal('patientModal')" class="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i>
-                            <span>Add Patient</span>
-                        </button>
-                        <button onclick="openModal('doctorModal')" class="bg-blue-600/80 hover:bg-blue-600 text-white border border-blue-400/30 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                            <span>Add Doctor</span>
-                        </button>
-                        <button onclick="openModal('mappingModal')" class="bg-indigo-600/80 hover:bg-indigo-600 text-white border border-indigo-400/30 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-2">
-                            <i data-lucide="user-check" class="w-4 h-4"></i>
-                            <span>Assign Doctor</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Recent Mappings & Overview Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="activity" class="w-5 h-5 text-blue-600"></i>
-                            <h4 class="font-bold text-sm text-slate-800">Recent Patient-Doctor Assignments</h4>
-                        </div>
-                        <button onclick="switchTab('mappings')" class="text-xs font-bold text-blue-600 hover:text-blue-700">View All</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-3.5">Patient</th>
-                                    <th class="px-6 py-3.5">Assigned Doctor</th>
-                                    <th class="px-6 py-3.5">Specialization</th>
-                                    <th class="px-6 py-3.5">Assigned Date</th>
-                                    <th class="px-6 py-3.5">Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentMappingsBody" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="5" class="text-center py-8 text-slate-400">Loading assignments...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 2: PATIENTS -->
-            <section id="tab-patients" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="relative flex-1 max-w-md">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="patientSearchInput" onkeyup="filterPatients()" placeholder="Search patients by name, contact, or email..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <button onclick="openModal('patientModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>New Patient</span>
+                    <button onclick="switchTab('mappings')" id="nav-mappings" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+                        <span class="flex items-center space-x-2.5">
+                            <i data-lucide="git-merge" class="w-4 h-4"></i>
+                            <span>Assignments Queue</span>
+                        </span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600" id="badgeMappingCount">0</span>
                     </button>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-3.5">ID</th>
-                                    <th class="px-6 py-3.5">Patient Name</th>
-                                    <th class="px-6 py-3.5">Gender / Age</th>
-                                    <th class="px-6 py-3.5">Contact Number</th>
-                                    <th class="px-6 py-3.5">Email</th>
-                                    <th class="px-6 py-3.5">Created By</th>
-                                    <th class="px-6 py-3.5 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="patientsTableBody" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="7" class="text-center py-8 text-slate-400">Loading patients...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 3: DOCTORS -->
-            <section id="tab-doctors" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="relative flex-1 max-w-md">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" id="doctorSearchInput" onkeyup="filterDoctors()" placeholder="Search doctors by name, specialty, or email..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <button onclick="openModal('doctorModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-sm">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Register Doctor</span>
+                <!-- Shortcuts / Quick Launch -->
+                <div class="space-y-1 pt-3 border-t border-zinc-100">
+                    <p class="px-3 text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Quick Actions</p>
+                    <button onclick="openModal('patientModal')" class="w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors text-left">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5 text-zinc-400"></i>
+                        <span>New Patient Admission</span>
+                    </button>
+                    <button onclick="openModal('doctorModal')" class="w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors text-left">
+                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-zinc-400"></i>
+                        <span>Register Provider</span>
+                    </button>
+                    <button onclick="openModal('mappingModal')" class="w-full flex items-center space-x-2.5 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors text-left">
+                        <i data-lucide="link" class="w-3.5 h-3.5 text-zinc-400"></i>
+                        <span>Assign Attending Doctor</span>
                     </button>
                 </div>
+            </div>
 
-                <div id="doctorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="col-span-full text-center py-12 text-slate-400">Loading doctors directory...</div>
-                </div>
-            </section>
-
-            <!-- TAB 4: MAPPINGS -->
-            <section id="tab-mappings" class="tab-content hidden space-y-6">
-                <!-- Assign Form Card -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="flex items-center space-x-2 mb-4">
-                        <i data-lucide="user-check" class="w-5 h-5 text-indigo-600"></i>
-                        <h4 class="font-bold text-sm text-slate-900">Assign Doctor to Patient</h4>
+            <!-- Provider Card & Session -->
+            <div class="p-3 border-t border-zinc-200 bg-zinc-50/70">
+                <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-zinc-200">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div id="providerAvatar" class="w-7 h-7 rounded-md bg-zinc-900 text-white font-mono text-xs flex items-center justify-center font-semibold shrink-0">
+                            DR
+                        </div>
+                        <div class="min-w-0 leading-tight">
+                            <p id="providerName" class="text-xs font-semibold text-zinc-900 truncate">Provider Session</p>
+                            <p id="providerEmail" class="text-[10px] text-zinc-500 font-mono truncate">Unauthenticated</p>
+                        </div>
                     </div>
-                    <form id="assignDoctorForm" onsubmit="handleAssignDoctor(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Select Patient *</label>
-                            <select id="assignPatientSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <option value="">Choose patient...</option>
-                            </select>
+                    <button onclick="logout()" title="Sign Out" class="text-zinc-400 hover:text-red-600 p-1 rounded hover:bg-zinc-100 transition-colors">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workbench Workspace -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-zinc-100">
+
+            <!-- Subheader Bar -->
+            <div class="h-12 bg-white border-b border-zinc-200 px-6 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <h1 id="viewHeading" class="text-xs font-bold uppercase tracking-wider text-zinc-800">Clinical Census Overview</h1>
+                    <span class="text-zinc-300">/</span>
+                    <span id="viewSubheading" class="text-xs text-zinc-500 font-mono">Live ward activity</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="refreshData()" class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs font-medium text-zinc-700 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-md transition-colors shadow-2xs">
+                        <i data-lucide="rotate-cw" class="w-3 h-3 text-zinc-500"></i>
+                        <span>Sync</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD / CENSUS -->
+            <div id="view-dashboard" class="view-panel p-6 space-y-6">
+
+                <!-- KPI Metric Strip (High Density & Functional) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white p-4 rounded-lg border border-zinc-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-zinc-500 text-xs font-medium">
+                            <span>Admitted Patients</span>
+                            <i data-lucide="users" class="w-4 h-4 text-zinc-400"></i>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Select Doctor *</label>
-                            <select id="assignDoctorSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <option value="">Choose doctor...</option>
-                            </select>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpiPatients" class="text-2xl font-bold font-mono text-zinc-900 tabular-nums">0</span>
+                            <span class="text-[11px] text-zinc-500 font-medium">registered</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Clinical Notes (Optional)</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="assignNotesInput" placeholder="Reason for assignment..." class="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0">
-                                    Assign
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                            <span>Scoped to creator</span>
+                            <span class="font-mono text-emerald-600 font-medium">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg border border-zinc-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-zinc-500 text-xs font-medium">
+                            <span>Active Physicians</span>
+                            <i data-lucide="stethoscope" class="w-4 h-4 text-zinc-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpiDoctors" class="text-2xl font-bold font-mono text-zinc-900 tabular-nums">0</span>
+                            <span class="text-[11px] text-zinc-500 font-medium">on roster</span>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                            <span>Verified credentials</span>
+                            <span class="font-mono text-zinc-700 font-medium">Directory</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg border border-zinc-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-zinc-500 text-xs font-medium">
+                            <span>Active Consultations</span>
+                            <i data-lucide="git-merge" class="w-4 h-4 text-zinc-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span id="kpiMappings" class="text-2xl font-bold font-mono text-zinc-900 tabular-nums">0</span>
+                            <span class="text-[11px] text-zinc-500 font-medium">assigned</span>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                            <span>Relational M:N</span>
+                            <span class="font-mono text-zinc-700 font-medium">100% Synced</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg border border-zinc-200/90 shadow-2xs">
+                        <div class="flex items-center justify-between text-zinc-500 text-xs font-medium">
+                            <span>Database Node</span>
+                            <i data-lucide="database" class="w-4 h-4 text-zinc-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline space-x-2">
+                            <span class="text-lg font-bold font-mono text-emerald-600">CONNECTED</span>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                            <span>PostgreSQL 18</span>
+                            <span class="font-mono text-zinc-600">Port 5432</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two-Column Operational Workbench -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Left 2 Cols: Active Clinical Consultations Queue -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-zinc-200/90 shadow-2xs overflow-hidden">
+                        <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-semibold text-xs text-zinc-800">Current Patient-to-Doctor Assignments</span>
+                                <span id="censusCountBadge" class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/70 text-zinc-700">0</span>
+                            </div>
+                            <button onclick="openModal('mappingModal')" class="inline-flex items-center space-x-1 text-xs font-medium text-zinc-900 bg-white hover:bg-zinc-100 px-2.5 py-1 rounded border border-zinc-200 shadow-2xs">
+                                <i data-lucide="plus" class="w-3 h-3"></i>
+                                <span>Assign Doctor</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-mono text-[11px] uppercase">
+                                    <tr>
+                                        <th class="px-4 py-2.5 font-medium">Patient Details</th>
+                                        <th class="px-4 py-2.5 font-medium">Attending Physician</th>
+                                        <th class="px-4 py-2.5 font-medium">Specialty</th>
+                                        <th class="px-4 py-2.5 font-medium">Assigned On</th>
+                                        <th class="px-4 py-2.5 font-medium text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardMappingsBody" class="divide-y divide-zinc-100 font-sans">
+                                    <tr>
+                                        <td colspan="5" class="px-4 py-8 text-center text-zinc-400 font-mono">Loading active assignments...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Quick Clinical Queue & Tools -->
+                    <div class="space-y-4">
+                        <!-- Direct Action Panel -->
+                        <div class="bg-white rounded-lg border border-zinc-200/90 p-4 shadow-2xs space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 font-mono">Registry Shortcuts</h3>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="openModal('patientModal')" class="w-full flex items-center justify-between p-2.5 rounded-md border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-left transition-all">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="w-7 h-7 rounded bg-zinc-100 flex items-center justify-center text-zinc-700">
+                                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-zinc-900">Add New Patient</p>
+                                            <p class="text-[11px] text-zinc-500">Record admission & demographics</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                </button>
+
+                                <button onclick="openModal('doctorModal')" class="w-full flex items-center justify-between p-2.5 rounded-md border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-left transition-all">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="w-7 h-7 rounded bg-zinc-100 flex items-center justify-center text-zinc-700">
+                                            <i data-lucide="stethoscope" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-zinc-900">Add Physician</p>
+                                            <p class="text-[11px] text-zinc-500">Add verified medical doctor</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                </button>
+
+                                <button onclick="openModal('mappingModal')" class="w-full flex items-center justify-between p-2.5 rounded-md border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-left transition-all">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="w-7 h-7 rounded bg-zinc-100 flex items-center justify-center text-zinc-700">
+                                            <i data-lucide="git-pull-request" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-zinc-900">Assign Patient to Doctor</p>
+                                            <p class="text-[11px] text-zinc-500">Relational consultation mapping</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-zinc-400"></i>
                                 </button>
                             </div>
                         </div>
-                    </form>
+
+                        <!-- System Security & Isolation Card -->
+                        <div class="bg-zinc-900 text-zinc-200 rounded-lg p-4 shadow-sm space-y-2 text-xs font-mono">
+                            <div class="flex items-center justify-between text-zinc-400 text-[11px]">
+                                <span>SECURITY PROTOCOL</span>
+                                <span class="text-emerald-400 font-bold">HIPAA ENFORCED</span>
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-zinc-400 font-sans">
+                                Patient isolation active: Records scoped to authorized creator (<code class="text-zinc-200 font-mono">IsOwnerOrAdmin</code>). SimpleJWT HMAC-SHA256 bearer tokens guarding all REST endpoints.
+                            </p>
+                            <div class="pt-2 border-t border-zinc-800 flex justify-between text-[10px] text-zinc-400">
+                                <span>Throttling: 60 req/min</span>
+                                <span>Rate Limiter: Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: PATIENT REGISTRY -->
+            <div id="view-patients" class="view-panel hidden p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-zinc-200 shadow-2xs">
+                    <div class="relative flex-1 max-w-md">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="patientFilterInput" onkeyup="filterPatientTable()" placeholder="Filter by patient name, MRN, phone, or email..." class="w-full bg-zinc-50 focus:bg-white pl-8 pr-4 py-1.5 rounded-md border border-zinc-200 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-900">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openModal('patientModal')" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-md transition-colors shadow-sm">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>New Admission</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- All Assignments Table -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="list-checks" class="w-5 h-5 text-blue-600"></i>
-                            <h4 class="font-bold text-sm text-slate-800">Active Patient-Doctor Assignments</h4>
-                        </div>
-                        <span id="mappingCountBadge" class="bg-blue-50 text-blue-700 font-bold px-2.5 py-1 rounded-full text-[11px]">0 Active</span>
-                    </div>
+                <div class="bg-white rounded-lg border border-zinc-200 shadow-2xs overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                            <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-mono text-[11px] uppercase">
                                 <tr>
-                                    <th class="px-6 py-3.5">Mapping ID</th>
-                                    <th class="px-6 py-3.5">Patient Details</th>
-                                    <th class="px-6 py-3.5">Assigned Doctor</th>
-                                    <th class="px-6 py-3.5">Specialization</th>
-                                    <th class="px-6 py-3.5">Assigned At</th>
-                                    <th class="px-6 py-3.5">Clinical Notes</th>
-                                    <th class="px-6 py-3.5 text-right">Actions</th>
+                                    <th class="px-4 py-2.5 font-medium">MRN / ID</th>
+                                    <th class="px-4 py-2.5 font-medium">Full Name</th>
+                                    <th class="px-4 py-2.5 font-medium">Sex / Age</th>
+                                    <th class="px-4 py-2.5 font-medium">Telephone</th>
+                                    <th class="px-4 py-2.5 font-medium">Email</th>
+                                    <th class="px-4 py-2.5 font-medium">Admitting Staff</th>
+                                    <th class="px-4 py-2.5 font-medium text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="mappingsTableBody" class="divide-y divide-slate-100">
+                            <tbody id="patientsFullTableBody" class="divide-y divide-zinc-100 font-sans">
                                 <tr>
-                                    <td colspan="7" class="text-center py-8 text-slate-400">Loading assignments...</td>
+                                    <td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">Loading patient directory...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- AUTH MODAL (Login & Register) -->
-    <div id="authModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-6 bg-gradient-to-tr from-blue-700 to-indigo-600 text-white text-center relative">
-                <button onclick="closeModal('authModal')" class="absolute top-4 right-4 text-white/70 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-md">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                </div>
-                <h3 id="authModalTitle" class="text-xl font-bold">Authentication Required</h3>
-                <p id="authModalSubtitle" class="text-xs text-blue-100 mt-1">Sign in with your healthcare credentials to access records</p>
             </div>
 
-            <!-- Auth Form -->
-            <div class="p-6 space-y-4">
-                <div class="flex bg-slate-100 p-1 rounded-xl">
-                    <button onclick="setAuthMode('login')" id="authTabLogin" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all">Sign In</button>
-                    <button onclick="setAuthMode('register')" id="authTabRegister" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">Register</button>
+            <!-- VIEW 3: PHYSICIAN ROSTER -->
+            <div id="view-doctors" class="view-panel hidden p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-zinc-200 shadow-2xs">
+                    <div class="relative flex-1 max-w-md">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="doctorFilterInput" onkeyup="filterDoctorGrid()" placeholder="Filter by doctor name, specialty, or hospital..." class="w-full bg-zinc-50 focus:bg-white pl-8 pr-4 py-1.5 rounded-md border border-zinc-200 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-900">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openModal('doctorModal')" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-md transition-colors shadow-sm">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Register Physician</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-zinc-200 shadow-2xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-mono text-[11px] uppercase">
+                                <tr>
+                                    <th class="px-4 py-2.5 font-medium">Provider ID</th>
+                                    <th class="px-4 py-2.5 font-medium">Physician Name</th>
+                                    <th class="px-4 py-2.5 font-medium">Clinical Specialty</th>
+                                    <th class="px-4 py-2.5 font-medium">Experience</th>
+                                    <th class="px-4 py-2.5 font-medium">Contact Phone</th>
+                                    <th class="px-4 py-2.5 font-medium">Hospital Affiliation</th>
+                                    <th class="px-4 py-2.5 font-medium text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctorsTableBody" class="divide-y divide-zinc-100 font-sans">
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">Loading medical providers...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: ASSIGNMENTS QUEUE -->
+            <div id="view-mappings" class="view-panel hidden p-6 space-y-4">
+                <div class="bg-white p-4 rounded-lg border border-zinc-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="space-y-0.5">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800 font-mono">Consultation Management</h2>
+                        <p class="text-xs text-zinc-500">Assign verified medical physicians to admitted patients with documented clinical rationale.</p>
+                    </div>
+                    <button onclick="openModal('mappingModal')" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-md transition-colors shadow-sm shrink-0">
+                        <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                        <span>New Assignment</span>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg border border-zinc-200 shadow-2xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-mono text-[11px] uppercase">
+                                <tr>
+                                    <th class="px-4 py-2.5 font-medium">Mapping ID</th>
+                                    <th class="px-4 py-2.5 font-medium">Admitted Patient</th>
+                                    <th class="px-4 py-2.5 font-medium">Assigned Physician</th>
+                                    <th class="px-4 py-2.5 font-medium">Department</th>
+                                    <th class="px-4 py-2.5 font-medium">Timestamp</th>
+                                    <th class="px-4 py-2.5 font-medium">Clinical Rationale / Notes</th>
+                                    <th class="px-4 py-2.5 font-medium text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mappingsFullTableBody" class="divide-y divide-zinc-100 font-sans">
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">Loading active assignments queue...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: AUTHENTICATION (Sign In / Register) -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-sm w-full shadow-xl border border-zinc-200 overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+                    <span class="font-bold text-xs uppercase tracking-wider text-zinc-800 font-mono">Provider Authentication</span>
+                </div>
+                <button onclick="closeModal('authModal')" class="text-zinc-400 hover:text-zinc-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-md">
+                    <button onclick="setAuthTab('login')" id="authTabLogin" class="py-1 text-xs font-medium rounded bg-white text-zinc-900 shadow-2xs transition-all">Sign In</button>
+                    <button onclick="setAuthTab('register')" id="authTabRegister" class="py-1 text-xs font-medium rounded text-zinc-600 hover:text-zinc-900 transition-all">Register</button>
                 </div>
 
                 <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
-                    <div id="registerNameGroup" class="hidden">
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Full Name</label>
-                        <input type="text" id="authNameInput" placeholder="Dr. John Doe" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <div id="registerNameRow" class="hidden">
+                        <label class="block text-[11px] font-medium text-zinc-600 mb-1">Provider Full Name *</label>
+                        <input type="text" id="authNameInput" placeholder="Dr. John Doe" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md text-xs focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Email Address</label>
-                        <input type="email" id="authEmailInput" required placeholder="name@healthcare.com" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-[11px] font-medium text-zinc-600 mb-1">Email Address *</label>
+                        <input type="email" id="authEmailInput" required placeholder="provider@healthcare.com" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md text-xs focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
-                        <input type="password" id="authPasswordInput" required minlength="6" placeholder="••••••••" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-[11px] font-medium text-zinc-600 mb-1">Password *</label>
+                        <input type="password" id="authPasswordInput" required minlength="6" placeholder="••••••••" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md text-xs focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
 
-                    <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-500/20">
-                        Sign In
+                    <button type="submit" id="authSubmitBtn" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-2 rounded-md text-xs transition-colors shadow-2xs">
+                        Sign In to Session
                     </button>
                 </form>
 
-                <!-- One-Click Demo Account Button -->
-                <div class="pt-2 border-t border-slate-100">
-                    <button onclick="fillDemoCredentials()" type="button" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2">
-                        <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
-                        <span>Auto-Fill Demo Admin Account</span>
+                <div class="pt-3 border-t border-zinc-100">
+                    <button onclick="fillDemoCredentials()" type="button" class="w-full bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-700 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-center space-x-1.5 font-mono">
+                        <i data-lucide="key" class="w-3.5 h-3.5 text-zinc-500"></i>
+                        <span>Auto-Fill Demo Admin</span>
                     </button>
-                    <p class="text-[10px] text-center text-slate-400 mt-1">Pre-loads: intern@healthcare.com</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- PATIENT MODAL (Add / Edit) -->
-    <div id="patientModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i>
-                    </div>
-                    <h3 id="patientModalTitle" class="text-base font-bold text-slate-900">Add New Patient</h3>
-                </div>
-                <button onclick="closeModal('patientModal')" class="text-slate-400 hover:text-slate-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+    <!-- MODAL 2: PATIENT ADMISSION (Add / Edit) -->
+    <div id="patientModal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full shadow-xl border border-zinc-200 overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                <span id="patientModalTitle" class="font-bold text-xs uppercase tracking-wider text-zinc-800 font-mono">Patient Admission Form</span>
+                <button onclick="closeModal('patientModal')" class="text-zinc-400 hover:text-zinc-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <form id="patientForm" onsubmit="handlePatientSubmit(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+            <form id="patientForm" onsubmit="handlePatientSubmit(event)" class="p-5 space-y-3.5 max-h-[80vh] overflow-y-auto text-xs">
                 <input type="hidden" id="patientEditId">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Patient Full Name *</label>
-                        <input type="text" id="patientNameInput" required placeholder="e.g. Jane Smith" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Full Name *</label>
+                        <input type="text" id="patientNameInput" required placeholder="e.g. Johnathan Doe" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Date of Birth</label>
-                        <input type="date" id="patientDobInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Date of Birth</label>
+                        <input type="date" id="patientDobInput" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Age</label>
-                        <input type="number" id="patientAgeInput" min="0" max="150" placeholder="Auto-computed if DOB set" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Age (Years)</label>
+                        <input type="number" id="patientAgeInput" min="0" max="150" placeholder="Computed if DOB given" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Gender *</label>
-                        <select id="patientGenderSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Biological Sex *</label>
+                        <select id="patientGenderSelect" required class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                             <option value="male">Male</option>
                             <option value="female">Female</option>
-                            <option value="other">Other</option>
+                            <option value="other">Other / Non-Binary</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Contact Number *</label>
-                        <input type="text" id="patientContactInput" required placeholder="+1-555-0199" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Primary Telephone *</label>
+                        <input type="text" id="patientContactInput" required placeholder="+1-555-0199" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none font-mono">
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Email (Optional)</label>
-                        <input type="email" id="patientEmailInput" placeholder="patient@example.com" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Email Address</label>
+                        <input type="email" id="patientEmailInput" placeholder="patient@domain.org" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none font-mono">
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Residential Address</label>
-                        <textarea id="patientAddressInput" rows="2" placeholder="Street, City, State..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Residential Address</label>
+                        <input type="text" id="patientAddressInput" placeholder="Street, Suite, City, State" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Medical History / Clinical Notes</label>
-                        <textarea id="patientHistoryInput" rows="2" placeholder="Allergies, chronic conditions, current prescriptions..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Medical History & Allergies</label>
+                        <textarea id="patientHistoryInput" rows="2" placeholder="Chronic conditions, contraindications, current medications..." class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none"></textarea>
                     </div>
                 </div>
-                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('patientModal')" class="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm">Save Patient</button>
+                <div class="pt-3 border-t border-zinc-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('patientModal')" class="px-3 py-1.5 border border-zinc-200 rounded-md font-medium text-zinc-600 hover:bg-zinc-50">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md font-medium shadow-2xs">Save Record</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- DOCTOR MODAL (Add / Edit) -->
-    <div id="doctorModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <i data-lucide="stethoscope" class="w-5 h-5"></i>
-                    </div>
-                    <h3 id="doctorModalTitle" class="text-base font-bold text-slate-900">Add New Doctor</h3>
-                </div>
-                <button onclick="closeModal('doctorModal')" class="text-slate-400 hover:text-slate-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+    <!-- MODAL 3: DOCTOR REGISTRY (Add / Edit) -->
+    <div id="doctorModal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full shadow-xl border border-zinc-200 overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                <span id="doctorModalTitle" class="font-bold text-xs uppercase tracking-wider text-zinc-800 font-mono">Physician Registration</span>
+                <button onclick="closeModal('doctorModal')" class="text-zinc-400 hover:text-zinc-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+            <form id="doctorForm" onsubmit="handleDoctorSubmit(event)" class="p-5 space-y-3.5 max-h-[80vh] overflow-y-auto text-xs">
                 <input type="hidden" id="doctorEditId">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Doctor Full Name *</label>
-                        <input type="text" id="doctorNameInput" required placeholder="e.g. Gregory House" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Physician Name *</label>
+                        <input type="text" id="doctorNameInput" required placeholder="e.g. Gregory House, M.D." class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Medical Specialization *</label>
-                        <input type="text" id="doctorSpecializationInput" required placeholder="e.g. Cardiology, Neurology, Diagnostics" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Contact Phone *</label>
-                        <input type="text" id="doctorContactInput" required placeholder="+1-555-0300" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <div class="col-span-2">
+                        <label class="block font-medium text-zinc-700 mb-1">Clinical Specialty *</label>
+                        <input type="text" id="doctorSpecializationInput" required placeholder="e.g. Diagnostic Medicine & Nephrology" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Email Address *</label>
-                        <input type="email" id="doctorEmailInput" required placeholder="doctor@hospital.org" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Contact Telephone *</label>
+                        <input type="text" id="doctorContactInput" required placeholder="+1-555-0300" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none font-mono">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Years of Experience</label>
-                        <input type="number" id="doctorExperienceInput" min="0" max="80" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Direct Email *</label>
+                        <input type="email" id="doctorEmailInput" required placeholder="physician@hospital.org" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none font-mono">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Hospital Affiliation</label>
-                        <input type="text" id="doctorHospitalInput" placeholder="e.g. General Hospital" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block font-medium text-zinc-700 mb-1">Years of Experience</label>
+                        <input type="number" id="doctorExperienceInput" min="0" max="80" value="0" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-zinc-700 mb-1">Hospital Affiliation</label>
+                        <input type="text" id="doctorHospitalInput" placeholder="Princeton-Plainsboro Teaching Hospital" class="w-full px-3 py-1.5 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none">
                     </div>
                 </div>
-                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('doctorModal')" class="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm">Save Doctor</button>
+                <div class="pt-3 border-t border-zinc-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('doctorModal')" class="px-3 py-1.5 border border-zinc-200 rounded-md font-medium text-zinc-600 hover:bg-zinc-50">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md font-medium shadow-2xs">Save Physician</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- PATIENT DETAILS MODAL (With Assigned Doctors) -->
-    <div id="patientDetailsModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold" id="detailPatientAvatar">P</div>
-                    <div>
-                        <h3 id="detailPatientName" class="text-base font-bold text-slate-900">Patient Details</h3>
-                        <p id="detailPatientSubtitle" class="text-xs text-slate-500">ID: #0</p>
-                    </div>
-                </div>
-                <button onclick="closeModal('patientDetailsModal')" class="text-slate-400 hover:text-slate-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+    <!-- MODAL 4: ASSIGN DOCTOR TO PATIENT -->
+    <div id="mappingModal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full shadow-xl border border-zinc-200 overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                <span class="font-bold text-xs uppercase tracking-wider text-zinc-800 font-mono">Clinical Assignment Order</span>
+                <button onclick="closeModal('mappingModal')" class="text-zinc-400 hover:text-zinc-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
-                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
+            <form id="modalAssignDoctorForm" onsubmit="handleModalAssignDoctor(event)" class="p-5 space-y-3.5 max-h-[80vh] overflow-y-auto text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Select Patient *</label>
+                    <select id="modalAssignPatientSelect" required class="w-full px-3 py-2 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-white">
+                        <option value="">Choose patient...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Select Attending Physician *</label>
+                    <select id="modalAssignDoctorSelect" required class="w-full px-3 py-2 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-white">
+                        <option value="">Choose physician...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Consultation Rationale / Clinical Notes</label>
+                    <textarea id="modalAssignNotesInput" rows="3" placeholder="Reason for assignment, therapeutic focus, diagnostic orders..." class="w-full px-3 py-2 border border-zinc-200 rounded-md focus:ring-1 focus:ring-zinc-900 focus:outline-none"></textarea>
+                </div>
+                <div class="pt-3 border-t border-zinc-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('mappingModal')" class="px-3 py-1.5 border border-zinc-200 rounded-md font-medium text-zinc-600 hover:bg-zinc-50">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-md font-medium shadow-2xs">Create Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: PATIENT DOSSIER & ASSIGNED DOCTORS -->
+    <div id="patientDetailsModal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full shadow-xl border border-zinc-200 overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                <div class="flex items-center space-x-2">
+                    <span id="detailPatientName" class="font-bold text-xs uppercase tracking-wider text-zinc-900 font-mono">Patient Record</span>
+                    <span id="detailPatientSubtitle" class="text-[10px] text-zinc-400 font-mono">MRN: #0</span>
+                </div>
+                <button onclick="closeModal('patientDetailsModal')" class="text-zinc-400 hover:text-zinc-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+                <!-- Patient Metadata Table -->
+                <div class="grid grid-cols-2 gap-2 p-3 bg-zinc-50 rounded-md border border-zinc-200 font-mono text-[11px]">
                     <div>
-                        <span class="text-slate-400 block font-semibold">Gender & Age:</span>
-                        <span id="detailPatientGenderAge" class="font-bold text-slate-800">Male, 35</span>
+                        <span class="text-zinc-400 block text-[10px]">BIOLOGICAL SEX & AGE:</span>
+                        <span id="detailPatientGenderAge" class="font-semibold text-zinc-800">Male • 35 yrs</span>
                     </div>
                     <div>
-                        <span class="text-slate-400 block font-semibold">Contact:</span>
-                        <span id="detailPatientContact" class="font-bold text-slate-800">+1-555-0100</span>
+                        <span class="text-zinc-400 block text-[10px]">TELEPHONE:</span>
+                        <span id="detailPatientContact" class="font-semibold text-zinc-800">+1-555-0100</span>
                     </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-400 block font-semibold">Email:</span>
-                        <span id="detailPatientEmail" class="font-bold text-slate-800">patient@example.com</span>
+                    <div class="col-span-2 pt-1 border-t border-zinc-200/50">
+                        <span class="text-zinc-400 block text-[10px]">EMAIL ADDRESS:</span>
+                        <span id="detailPatientEmail" class="font-semibold text-zinc-800">None</span>
                     </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-400 block font-semibold">Address:</span>
-                        <span id="detailPatientAddress" class="text-slate-700">None</span>
+                    <div class="col-span-2 pt-1 border-t border-zinc-200/50">
+                        <span class="text-zinc-400 block text-[10px]">RESIDENTIAL ADDRESS:</span>
+                        <span id="detailPatientAddress" class="text-zinc-700 font-sans">None</span>
                     </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-400 block font-semibold">Medical History:</span>
-                        <span id="detailPatientHistory" class="text-slate-700">No history logged</span>
+                    <div class="col-span-2 pt-1 border-t border-zinc-200/50">
+                        <span class="text-zinc-400 block text-[10px]">CLINICAL HISTORY & CONTRAINDICATIONS:</span>
+                        <span id="detailPatientHistory" class="text-zinc-700 font-sans">None logged</span>
                     </div>
                 </div>
 
+                <!-- Assigned Care Team -->
                 <div>
-                    <h4 class="font-bold text-slate-800 mb-2 flex items-center justify-between">
-                        <span>Assigned Doctors</span>
-                        <span id="detailAssignedCount" class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[10px]">0</span>
-                    </h4>
-                    <div id="detailAssignedDoctorsList" class="space-y-2">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-zinc-100 mb-2">
+                        <span class="font-mono text-[11px] font-bold text-zinc-700 uppercase">Assigned Care Team</span>
+                        <span id="detailAssignedCount" class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600">0</span>
+                    </div>
+                    <div id="detailAssignedDoctorsList" class="space-y-1.5">
                         <!-- Rendered dynamically -->
                     </div>
                 </div>
@@ -582,65 +712,23 @@
         </div>
     </div>
 
-    <!-- MAPPING MODAL (Assign Doctor to Patient) -->
-    <div id="mappingModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                        <i data-lucide="user-check" class="w-5 h-5"></i>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900">Assign Doctor to Patient</h3>
-                </div>
-                <button onclick="closeModal('mappingModal')" class="text-slate-400 hover:text-slate-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <form id="modalAssignDoctorForm" onsubmit="handleModalAssignDoctor(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Select Patient *</label>
-                    <select id="modalAssignPatientSelect" required class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">Choose patient...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Select Doctor *</label>
-                    <select id="modalAssignDoctorSelect" required class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">Choose doctor...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Clinical Notes (Optional)</label>
-                    <textarea id="modalAssignNotesInput" rows="3" placeholder="Reason for assignment, treatment plan, diagnosis notes..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-                </div>
-                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('mappingModal')" class="px-4 py-2 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm">Assign Doctor</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <!-- Dashboard App Logic -->
+    <!-- Application Script -->
     <script>
-        // State
         const API_BASE = '/api';
         let currentTab = 'dashboard';
         let cachedPatients = [];
         let cachedDoctors = [];
         let cachedMappings = [];
         let currentUser = null;
-        let authMode = 'login';
+        let authTabMode = 'login';
 
-        // Initialize icons
         function refreshIcons() {
             lucide.createIcons();
         }
 
-        // Token management
         function getToken() {
             return localStorage.getItem('care_access_token');
         }
@@ -653,7 +741,6 @@
             localStorage.removeItem('care_access_token');
         }
 
-        // API Fetch Wrapper
         async function apiCall(endpoint, options = {}) {
             const token = getToken();
             const headers = {
@@ -668,10 +755,9 @@
             });
 
             if (response.status === 401) {
-                // Token expired or invalid
                 removeToken();
                 updateAuthUI();
-                showToast('Authentication required. Please sign in.', 'error');
+                showToast('Session expired. Please authenticate.', 'error');
                 openModal('authModal');
                 throw new Error('Unauthorized');
             }
@@ -684,70 +770,63 @@
             return data;
         }
 
-        // Switch Tabs
         function switchTab(tabId) {
             currentTab = tabId;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-50', 'text-blue-700', 'shadow-sm');
-                btn.classList.add('text-slate-600');
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.className = 'nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors';
             });
 
-            const activeTabEl = document.getElementById(`tab-${tabId}`);
-            const activeNavEl = document.getElementById(`nav-${tabId}`);
-            if (activeTabEl) activeTabEl.classList.remove('hidden');
-            if (activeNavEl) {
-                activeNavEl.classList.add('bg-blue-50', 'text-blue-700', 'shadow-sm');
-                activeNavEl.classList.remove('text-slate-600');
+            const activeView = document.getElementById(`view-${tabId}`);
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeView) activeView.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.className = 'nav-item w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-colors bg-zinc-900 text-white shadow-sm';
             }
 
-            const titles = {
-                dashboard: ['System Overview', 'Real-time healthcare metrics and record management'],
-                patients: ['Patient Records', 'Manage confidential patient medical profiles'],
-                doctors: ['Doctors Directory', 'Certified medical practitioners and clinical specialties'],
-                mappings: ['Patient-Doctor Assignments', 'Active doctor consultations and mapping records'],
+            const headings = {
+                dashboard: ['Clinical Census Overview', 'Live ward & practitioner activity'],
+                patients: ['Patient Demographics Registry', 'Medical admissions & identity records'],
+                doctors: ['Attending Physician Directory', 'Credentialed staff & departments'],
+                mappings: ['Active Consultations Queue', 'Patient-to-provider mappings'],
             };
 
-            if (titles[tabId]) {
-                document.getElementById('pageTitle').textContent = titles[tabId][0];
-                document.getElementById('pageSubtitle').textContent = titles[tabId][1];
+            if (headings[tabId]) {
+                document.getElementById('viewHeading').textContent = headings[tabId][0];
+                document.getElementById('viewSubheading').textContent = headings[tabId][1];
             }
 
-            refreshCurrentTab();
+            refreshData();
         }
 
-        // Refresh Data
-        async function refreshCurrentTab() {
+        async function refreshData() {
             await checkHealth();
             if (currentTab === 'dashboard') {
-                await loadAllStats();
+                await loadAllData();
             } else if (currentTab === 'patients') {
                 await loadPatients();
             } else if (currentTab === 'doctors') {
                 await loadDoctors();
             } else if (currentTab === 'mappings') {
                 await loadMappings();
-                await populateMappingSelects();
             }
             refreshIcons();
         }
 
-        // Health Check
         async function checkHealth() {
             try {
                 const res = await fetch(`${API_BASE}/health/`);
                 const data = await res.json();
                 if (data.status === 'healthy') {
-                    document.getElementById('healthStatusText').textContent = 'PostgreSQL Online';
-                    document.getElementById('healthPulse').className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                    document.getElementById('globalDbStatus').textContent = 'PostgreSQL Online';
+                    document.getElementById('globalPulse').className = 'w-2 h-2 rounded-full bg-emerald-500';
                 }
             } catch (e) {
-                document.getElementById('healthStatusText').textContent = 'Database Degraded';
-                document.getElementById('healthPulse').className = 'w-2 h-2 rounded-full bg-rose-500';
+                document.getElementById('globalDbStatus').textContent = 'DB Degraded';
+                document.getElementById('globalPulse').className = 'w-2 h-2 rounded-full bg-rose-500';
             }
         }
 
-        // Load Current User Profile
         async function loadCurrentUser() {
             const token = getToken();
             if (!token) {
@@ -765,111 +844,83 @@
         }
 
         function updateAuthUI() {
-            const userNameEl = document.getElementById('userName');
-            const userEmailEl = document.getElementById('userEmail');
-            const userAvatarEl = document.getElementById('userAvatar');
-            const authHeaderActions = document.getElementById('authHeaderActions');
+            const providerName = document.getElementById('providerName');
+            const providerEmail = document.getElementById('providerEmail');
+            const providerAvatar = document.getElementById('providerAvatar');
+            const headerContainer = document.getElementById('authHeaderContainer');
 
             if (currentUser) {
-                userNameEl.textContent = currentUser.name;
-                userEmailEl.textContent = currentUser.email;
-                userAvatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
-                authHeaderActions.innerHTML = `
-                    <button onclick="logout()" class="px-3 py-1.5 border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5">
-                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                        <span>Logout</span>
+                providerName.textContent = currentUser.name;
+                providerEmail.textContent = currentUser.email;
+                providerAvatar.textContent = currentUser.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                headerContainer.innerHTML = `
+                    <button onclick="logout()" class="px-2.5 py-1 text-xs font-medium text-zinc-700 hover:text-red-600 hover:bg-zinc-100 rounded-md transition-colors border border-zinc-200">
+                        Sign Out
                     </button>
                 `;
             } else {
-                userNameEl.textContent = 'Not Logged In';
-                userEmailEl.textContent = 'Sign in to manage records';
-                userAvatarEl.textContent = '?';
-                authHeaderActions.innerHTML = `
-                    <button onclick="openModal('authModal')" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center space-x-1.5">
-                        <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
-                        <span>Sign In</span>
+                providerName.textContent = 'Guest Session';
+                providerEmail.textContent = 'Unauthenticated';
+                providerAvatar.textContent = '??';
+                headerContainer.innerHTML = `
+                    <button onclick="openModal('authModal')" class="px-3 py-1.5 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-md transition-colors shadow-sm">
+                        Sign In
                     </button>
                 `;
             }
             refreshIcons();
         }
 
-        // Load Stats for Dashboard
-        async function loadAllStats() {
+        async function loadAllData() {
             try {
-                const [patientsRes, doctorsRes, mappingsRes] = await Promise.all([
+                const [pRes, dRes, mRes] = await Promise.all([
                     apiCall('/patients/').catch(() => ({ data: [] })),
                     apiCall('/doctors/').catch(() => ({ data: [] })),
                     apiCall('/mappings/').catch(() => ({ data: [] }))
                 ]);
 
-                cachedPatients = patientsRes.data || [];
-                cachedDoctors = doctorsRes.data || [];
-                cachedMappings = mappingsRes.data || [];
+                cachedPatients = pRes.data || [];
+                cachedDoctors = dRes.data || [];
+                cachedMappings = mRes.data || [];
 
-                document.getElementById('statPatientsCount').textContent = cachedPatients.length;
-                document.getElementById('statDoctorsCount').textContent = cachedDoctors.length;
-                document.getElementById('statMappingsCount').textContent = cachedMappings.length;
+                document.getElementById('kpiPatients').textContent = cachedPatients.length;
+                document.getElementById('kpiDoctors').textContent = cachedDoctors.length;
+                document.getElementById('kpiMappings').textContent = cachedMappings.length;
 
-                renderRecentMappings();
-            } catch (err) {
-                console.error('Stats error:', err);
-            }
-        }
+                document.getElementById('badgePatientCount').textContent = cachedPatients.length;
+                document.getElementById('badgeDoctorCount').textContent = cachedDoctors.length;
+                document.getElementById('badgeMappingCount').textContent = cachedMappings.length;
+                document.getElementById('badgeTotalRecords').textContent = cachedPatients.length + cachedDoctors.length;
 
-        function renderRecentMappings() {
-            const body = document.getElementById('recentMappingsBody');
-            if (!cachedMappings || cachedMappings.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No active assignments found. Assign a doctor to get started!</td></tr>`;
-                return;
-            }
+                document.getElementById('censusCountBadge').textContent = `${cachedMappings.length} Active`;
 
-            body.innerHTML = cachedMappings.slice(0, 5).map(m => `
-                <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-6 py-3.5 font-bold text-slate-800">${escapeHtml(m.patient.name)}</td>
-                    <td class="px-6 py-3.5 text-blue-700 font-semibold">Dr. ${escapeHtml(m.doctor.name)}</td>
-                    <td class="px-6 py-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold">${escapeHtml(m.doctor.specialization)}</span></td>
-                    <td class="px-6 py-3.5 text-slate-500">${new Date(m.assigned_at).toLocaleDateString()}</td>
-                    <td class="px-6 py-3.5 text-slate-600 truncate max-w-xs">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">None</span>'}</td>
-                </tr>
-            `).join('');
-        }
-
-        // Load Patients
-        async function loadPatients() {
-            try {
-                const res = await apiCall('/patients/');
-                cachedPatients = res.data || [];
-                renderPatientsTable(cachedPatients);
+                renderDashboardMappings();
             } catch (e) {
-                document.getElementById('patientsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500 font-medium">${e.message}</td></tr>`;
+                console.error(e);
             }
         }
 
-        function renderPatientsTable(patients) {
-            const body = document.getElementById('patientsTableBody');
-            if (patients.length === 0) {
-                body.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No patients created yet. Click "New Patient" to add one.</td></tr>`;
+        function renderDashboardMappings() {
+            const body = document.getElementById('dashboardMappingsBody');
+            if (cachedMappings.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-zinc-400 font-mono">No active consultations recorded. Click "Assign Doctor" above to map records.</td></tr>`;
                 return;
             }
 
-            body.innerHTML = patients.map(p => `
-                <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-6 py-3.5 font-mono text-slate-400 text-[11px]">#${p.id}</td>
-                    <td class="px-6 py-3.5 font-bold text-slate-900">${escapeHtml(p.name)}</td>
-                    <td class="px-6 py-3.5 capitalize text-slate-600">${p.gender} ${p.age ? `• ${p.age} yrs` : ''}</td>
-                    <td class="px-6 py-3.5 font-mono text-slate-700">${escapeHtml(p.contact_number)}</td>
-                    <td class="px-6 py-3.5 text-slate-600">${p.email ? escapeHtml(p.email) : '-'}</td>
-                    <td class="px-6 py-3.5 text-[11px] text-slate-500">${escapeHtml(p.created_by_name || 'You')}</td>
-                    <td class="px-6 py-3.5 text-right space-x-1">
-                        <button onclick="viewPatientDetail(${p.id})" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors" title="View Details">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="editPatient(${p.id})" class="text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors" title="Edit Patient">
-                            <i data-lucide="edit-2" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deletePatient(${p.id})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors" title="Delete Patient">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            body.innerHTML = cachedMappings.map(m => `
+                <tr class="hover:bg-zinc-50/70 transition-colors">
+                    <td class="px-4 py-2.5">
+                        <div class="font-semibold text-zinc-900">${escapeHtml(m.patient.name)}</div>
+                        <div class="text-[10px] text-zinc-400 font-mono">MRN: #${m.patient.id} • ${m.patient.gender}</div>
+                    </td>
+                    <td class="px-4 py-2.5 font-medium text-zinc-900">Dr. ${escapeHtml(m.doctor.name)}</td>
+                    <td class="px-4 py-2.5">
+                        <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-100 text-zinc-700 border border-zinc-200">${escapeHtml(m.doctor.specialization)}</span>
+                    </td>
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-500">${new Date(m.assigned_at).toLocaleDateString()}</td>
+                    <td class="px-4 py-2.5 text-right font-mono">
+                        <button onclick="removeMapping(${m.id})" class="text-zinc-400 hover:text-red-600 p-1 hover:bg-zinc-100 rounded transition-colors" title="End Consultation">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </td>
                 </tr>
@@ -877,165 +928,143 @@
             refreshIcons();
         }
 
-        function filterPatients() {
-            const query = document.getElementById('patientSearchInput').value.toLowerCase();
-            const filtered = cachedPatients.filter(p =>
-                p.name.toLowerCase().includes(query) ||
-                p.contact_number.toLowerCase().includes(query) ||
-                (p.email && p.email.toLowerCase().includes(query))
-            );
-            renderPatientsTable(filtered);
-        }
-
-        // View Patient Details with assigned doctors
-        async function viewPatientDetail(id) {
+        async function loadPatients() {
             try {
-                const res = await apiCall(`/patients/${id}/`);
-                const p = res.data;
-                document.getElementById('detailPatientAvatar').textContent = p.name.charAt(0).toUpperCase();
-                document.getElementById('detailPatientName').textContent = p.name;
-                document.getElementById('detailPatientSubtitle').textContent = `Patient ID: #${p.id} • Created by ${p.created_by_name || 'You'}`;
-                document.getElementById('detailPatientGenderAge').textContent = `${p.gender.toUpperCase()} • ${p.age ? p.age + ' years old' : 'Age not specified'}`;
-                document.getElementById('detailPatientContact').textContent = p.contact_number;
-                document.getElementById('detailPatientEmail').textContent = p.email || 'None';
-                document.getElementById('detailPatientAddress').textContent = p.address || 'No address provided';
-                document.getElementById('detailPatientHistory').textContent = p.medical_history || 'No medical history recorded';
-
-                const docList = document.getElementById('detailAssignedDoctorsList');
-                const countBadge = document.getElementById('detailAssignedCount');
-                countBadge.textContent = p.assigned_doctors ? p.assigned_doctors.length : 0;
-
-                if (!p.assigned_doctors || p.assigned_doctors.length === 0) {
-                    docList.innerHTML = `<p class="text-slate-400 py-3 text-center">No doctors currently assigned to this patient.</p>`;
-                } else {
-                    docList.innerHTML = p.assigned_doctors.map(d => `
-                        <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">Dr</div>
-                                <div>
-                                    <p class="font-bold text-slate-800">Dr. ${escapeHtml(d.doctor_name)}</p>
-                                    <p class="text-[10px] text-emerald-700 font-semibold">${escapeHtml(d.specialization)}</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] text-slate-400">${new Date(d.assigned_at).toLocaleDateString()}</span>
-                        </div>
-                    `).join('');
-                }
-
-                openModal('patientDetailsModal');
+                const res = await apiCall('/patients/');
+                cachedPatients = res.data || [];
+                renderPatientsTable(cachedPatients);
+                document.getElementById('badgePatientCount').textContent = cachedPatients.length;
             } catch (e) {
-                showToast(e.message, 'error');
+                document.getElementById('patientsFullTableBody').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-red-500 font-mono">${e.message}</td></tr>`;
             }
         }
 
-        // Load Doctors
-        async function loadDoctors() {
-            try {
-                const res = await apiCall('/doctors/');
-                cachedDoctors = res.data || [];
-                renderDoctorsGrid(cachedDoctors);
-            } catch (e) {
-                document.getElementById('doctorsGrid').innerHTML = `<div class="col-span-full text-center py-6 text-rose-500 font-medium">${e.message}</div>`;
-            }
-        }
-
-        function renderDoctorsGrid(doctors) {
-            const grid = document.getElementById('doctorsGrid');
-            if (doctors.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400">No doctors registered yet. Click "Register Doctor" to add one.</div>`;
+        function renderPatientsTable(patients) {
+            const body = document.getElementById('patientsFullTableBody');
+            if (patients.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">No patients registered by your provider account. Click "New Admission" to create a record.</td></tr>`;
                 return;
             }
 
-            grid.innerHTML = doctors.map(d => `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-                    <div>
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
-                                    ${d.name.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-sm text-slate-900 leading-tight">Dr. ${escapeHtml(d.name)}</h4>
-                                    <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                                        ${escapeHtml(d.specialization)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="space-x-1">
-                                <button onclick="editDoctor(${d.id})" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
-                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="deleteDoctor(${d.id})" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
-                            <p class="flex items-center space-x-2">
-                                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span>${escapeHtml(d.contact_number)}</span>
-                            </p>
-                            <p class="flex items-center space-x-2 truncate">
-                                <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span class="truncate">${escapeHtml(d.email)}</span>
-                            </p>
-                            <p class="flex items-center space-x-2">
-                                <i data-lucide="building" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span>${escapeHtml(d.hospital_affiliation || 'Independent Practice')}</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 p-2.5 rounded-xl flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                        <span>Experience:</span>
-                        <span class="text-slate-900 font-bold">${d.years_of_experience} Years</span>
-                    </div>
-                </div>
+            body.innerHTML = patients.map(p => `
+                <tr class="hover:bg-zinc-50/70 transition-colors">
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-500 font-semibold">#${p.id}</td>
+                    <td class="px-4 py-2.5 font-semibold text-zinc-900">${escapeHtml(p.name)}</td>
+                    <td class="px-4 py-2.5 capitalize text-zinc-600 font-mono text-[11px]">${p.gender} • ${p.age !== null ? p.age + 'y' : 'N/A'}</td>
+                    <td class="px-4 py-2.5 font-mono text-zinc-600">${escapeHtml(p.contact_number)}</td>
+                    <td class="px-4 py-2.5 text-zinc-500 font-mono text-[11px]">${p.email ? escapeHtml(p.email) : '—'}</td>
+                    <td class="px-4 py-2.5 text-zinc-500 text-[11px]">${escapeHtml(p.created_by_name || 'You')}</td>
+                    <td class="px-4 py-2.5 text-right space-x-1 font-mono">
+                        <button onclick="viewPatientDetail(${p.id})" class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 p-1 rounded transition-colors" title="View Patient Dossier">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="editPatient(${p.id})" class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 p-1 rounded transition-colors" title="Edit Demographics">
+                            <i data-lucide="edit" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deletePatient(${p.id})" class="text-zinc-400 hover:text-red-600 hover:bg-zinc-100 p-1 rounded transition-colors" title="Discharge / Delete">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                </tr>
             `).join('');
             refreshIcons();
         }
 
-        function filterDoctors() {
-            const query = document.getElementById('doctorSearchInput').value.toLowerCase();
+        function filterPatientTable() {
+            const query = document.getElementById('patientFilterInput').value.toLowerCase();
+            const filtered = cachedPatients.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                p.contact_number.toLowerCase().includes(query) ||
+                (p.email && p.email.toLowerCase().includes(query)) ||
+                String(p.id).includes(query)
+            );
+            renderPatientsTable(filtered);
+        }
+
+        async function loadDoctors() {
+            try {
+                const res = await apiCall('/doctors/');
+                cachedDoctors = res.data || [];
+                renderDoctorsTable(cachedDoctors);
+                document.getElementById('badgeDoctorCount').textContent = cachedDoctors.length;
+            } catch (e) {
+                document.getElementById('doctorsTableBody').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-red-500 font-mono">${e.message}</td></tr>`;
+            }
+        }
+
+        function renderDoctorsTable(doctors) {
+            const body = document.getElementById('doctorsTableBody');
+            if (doctors.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">No physicians found. Click "Register Physician" to populate roster.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = doctors.map(d => `
+                <tr class="hover:bg-zinc-50/70 transition-colors">
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-500 font-semibold">MD-${d.id}</td>
+                    <td class="px-4 py-2.5 font-semibold text-zinc-900">Dr. ${escapeHtml(d.name)}</td>
+                    <td class="px-4 py-2.5">
+                        <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-100 text-zinc-700 border border-zinc-200">${escapeHtml(d.specialization)}</span>
+                    </td>
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-600">${d.years_of_experience} yrs</td>
+                    <td class="px-4 py-2.5 font-mono text-zinc-600">${escapeHtml(d.contact_number)}</td>
+                    <td class="px-4 py-2.5 text-zinc-500 text-[11px]">${escapeHtml(d.hospital_affiliation || 'Independent')}</td>
+                    <td class="px-4 py-2.5 text-right space-x-1 font-mono">
+                        <button onclick="editDoctor(${d.id})" class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 p-1 rounded transition-colors" title="Edit Physician">
+                            <i data-lucide="edit" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deleteDoctor(${d.id})" class="text-zinc-400 hover:text-red-600 hover:bg-zinc-100 p-1 rounded transition-colors" title="Remove Physician">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            refreshIcons();
+        }
+
+        function filterDoctorGrid() {
+            const query = document.getElementById('doctorFilterInput').value.toLowerCase();
             const filtered = cachedDoctors.filter(d =>
                 d.name.toLowerCase().includes(query) ||
                 d.specialization.toLowerCase().includes(query) ||
-                d.email.toLowerCase().includes(query)
+                d.email.toLowerCase().includes(query) ||
+                (d.hospital_affiliation && d.hospital_affiliation.toLowerCase().includes(query))
             );
-            renderDoctorsGrid(filtered);
+            renderDoctorsTable(filtered);
         }
 
-        // Load Mappings
         async function loadMappings() {
             try {
                 const res = await apiCall('/mappings/');
                 cachedMappings = res.data || [];
                 renderMappingsTable(cachedMappings);
-                document.getElementById('mappingCountBadge').textContent = `${cachedMappings.length} Active`;
+                document.getElementById('badgeMappingCount').textContent = cachedMappings.length;
             } catch (e) {
-                document.getElementById('mappingsTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500 font-medium">${e.message}</td></tr>`;
+                document.getElementById('mappingsFullTableBody').innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-red-500 font-mono">${e.message}</td></tr>`;
             }
         }
 
         function renderMappingsTable(mappings) {
-            const body = document.getElementById('mappingsTableBody');
+            const body = document.getElementById('mappingsFullTableBody');
             if (mappings.length === 0) {
-                body.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No patient-doctor mappings yet. Use the form above to assign a doctor.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-zinc-400 font-mono">No consultations logged. Click "New Assignment" to assign a doctor.</td></tr>`;
                 return;
             }
 
             body.innerHTML = mappings.map(m => `
-                <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-6 py-3.5 font-mono text-slate-400 text-[11px]">#${m.id}</td>
-                    <td class="px-6 py-3.5 font-bold text-slate-900">${escapeHtml(m.patient.name)} <span class="text-slate-400 text-[10px]">(${m.patient.gender})</span></td>
-                    <td class="px-6 py-3.5 text-blue-700 font-semibold">Dr. ${escapeHtml(m.doctor.name)}</td>
-                    <td class="px-6 py-3.5"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold">${escapeHtml(m.doctor.specialization)}</span></td>
-                    <td class="px-6 py-3.5 text-slate-500">${new Date(m.assigned_at).toLocaleDateString()}</td>
-                    <td class="px-6 py-3.5 text-slate-600 truncate max-w-xs">${m.notes ? escapeHtml(m.notes) : '<span class="text-slate-300">None</span>'}</td>
-                    <td class="px-6 py-3.5 text-right">
-                        <button onclick="removeMapping(${m.id})" class="text-rose-500 hover:bg-rose-50 px-2.5 py-1 rounded-lg font-bold text-xs transition-colors">
-                            Remove
+                <tr class="hover:bg-zinc-50/70 transition-colors">
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-500">MAP-${m.id}</td>
+                    <td class="px-4 py-2.5">
+                        <div class="font-semibold text-zinc-900">${escapeHtml(m.patient.name)}</div>
+                        <div class="text-[10px] text-zinc-400 font-mono">MRN: #${m.patient.id}</div>
+                    </td>
+                    <td class="px-4 py-2.5 font-medium text-zinc-900">Dr. ${escapeHtml(m.doctor.name)}</td>
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-600">${escapeHtml(m.doctor.specialization)}</td>
+                    <td class="px-4 py-2.5 font-mono text-[11px] text-zinc-500">${new Date(m.assigned_at).toLocaleString()}</td>
+                    <td class="px-4 py-2.5 text-zinc-600 max-w-xs truncate">${m.notes ? escapeHtml(m.notes) : '<span class="text-zinc-300 font-mono">None</span>'}</td>
+                    <td class="px-4 py-2.5 text-right font-mono">
+                        <button onclick="removeMapping(${m.id})" class="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-colors">
+                            Discharge
                         </button>
                     </td>
                 </tr>
@@ -1052,31 +1081,25 @@
                 cachedPatients = pRes.data || [];
                 cachedDoctors = dRes.data || [];
 
-                // Inline form selects
-                const pSelect = document.getElementById('assignPatientSelect');
-                const dSelect = document.getElementById('assignDoctorSelect');
-                // Modal form selects
                 const modalPSelect = document.getElementById('modalAssignPatientSelect');
                 const modalDSelect = document.getElementById('modalAssignDoctorSelect');
 
-                const patientOptions = `<option value="">Choose patient...</option>` + cachedPatients.map(p => `
-                    <option value="${p.id}">${escapeHtml(p.name)} (#${p.id})</option>
-                `).join('');
+                if (modalPSelect) {
+                    modalPSelect.innerHTML = `<option value="">Choose patient...</option>` + cachedPatients.map(p => `
+                        <option value="${p.id}">${escapeHtml(p.name)} (MRN: #${p.id})</option>
+                    `).join('');
+                }
 
-                const doctorOptions = `<option value="">Choose doctor...</option>` + cachedDoctors.map(d => `
-                    <option value="${d.id}">Dr. ${escapeHtml(d.name)} (${escapeHtml(d.specialization)})</option>
-                `).join('');
-
-                if (pSelect) pSelect.innerHTML = patientOptions;
-                if (dSelect) dSelect.innerHTML = doctorOptions;
-                if (modalPSelect) modalPSelect.innerHTML = patientOptions;
-                if (modalDSelect) modalDSelect.innerHTML = doctorOptions;
+                if (modalDSelect) {
+                    modalDSelect.innerHTML = `<option value="">Choose physician...</option>` + cachedDoctors.map(d => `
+                        <option value="${d.id}">Dr. ${escapeHtml(d.name)} — ${escapeHtml(d.specialization)}</option>
+                    `).join('');
+                }
             } catch (e) {
                 console.error(e);
             }
         }
 
-        // Handle Assign Doctor (Modal Form)
         async function handleModalAssignDoctor(e) {
             e.preventDefault();
             const patientId = document.getElementById('modalAssignPatientSelect').value;
@@ -1084,7 +1107,7 @@
             const notes = document.getElementById('modalAssignNotesInput').value;
 
             if (!patientId || !doctorId) {
-                showToast('Please select both a patient and a doctor.', 'error');
+                showToast('Both patient and physician must be selected.', 'error');
                 return;
             }
 
@@ -1097,70 +1120,39 @@
                         notes: notes
                     })
                 });
-                showToast('Doctor successfully assigned to patient!', 'success');
+                showToast('Consultation assignment created successfully.', 'success');
                 closeModal('mappingModal');
                 document.getElementById('modalAssignDoctorForm').reset();
-                await refreshCurrentTab();
+                await refreshData();
             } catch (err) {
                 showToast(err.message, 'error');
             }
         }
 
-        // Handle Assign Doctor (Inline Form)
-        async function handleAssignDoctor(e) {
-            e.preventDefault();
-            const patientId = document.getElementById('assignPatientSelect').value;
-            const doctorId = document.getElementById('assignDoctorSelect').value;
-            const notes = document.getElementById('assignNotesInput').value;
-
-            if (!patientId || !doctorId) {
-                showToast('Please select both a patient and a doctor.', 'error');
-                return;
-            }
-
-            try {
-                await apiCall('/mappings/', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        patient_id: parseInt(patientId),
-                        doctor_id: parseInt(doctorId),
-                        notes: notes
-                    })
-                });
-                showToast('Doctor successfully assigned to patient!', 'success');
-                document.getElementById('assignNotesInput').value = '';
-                await refreshCurrentTab();
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
-        }
-
-        // Remove Mapping
         async function removeMapping(id) {
-            if (!confirm('Are you sure you want to remove this patient-doctor assignment?')) return;
+            if (!confirm(`Confirm removal of assignment #${id}?`)) return;
             try {
                 await apiCall(`/mappings/${id}/`, { method: 'DELETE' });
-                showToast('Doctor removed from patient.', 'success');
-                await loadMappings();
+                showToast('Assignment removed successfully.', 'success');
+                await refreshData();
             } catch (e) {
                 showToast(e.message, 'error');
             }
         }
 
-        // Patient Modal & Submission
         function editPatient(id) {
             const p = cachedPatients.find(item => item.id === id);
             if (!p) return;
             document.getElementById('patientEditId').value = p.id;
             document.getElementById('patientNameInput').value = p.name;
             document.getElementById('patientDobInput').value = p.date_of_birth || '';
-            document.getElementById('patientAgeInput').value = p.age || '';
+            document.getElementById('patientAgeInput').value = p.age !== null ? p.age : '';
             document.getElementById('patientGenderSelect').value = p.gender;
             document.getElementById('patientContactInput').value = p.contact_number;
             document.getElementById('patientEmailInput').value = p.email || '';
             document.getElementById('patientAddressInput').value = p.address || '';
             document.getElementById('patientHistoryInput').value = p.medical_history || '';
-            document.getElementById('patientModalTitle').textContent = `Edit Patient #${p.id}`;
+            document.getElementById('patientModalTitle').textContent = `Update Patient MRN #${p.id}`;
             openModal('patientModal');
         }
 
@@ -1184,35 +1176,70 @@
                         method: 'PUT',
                         body: JSON.stringify(payload)
                     });
-                    showToast('Patient updated successfully!', 'success');
+                    showToast('Patient record updated.', 'success');
                 } else {
                     await apiCall('/patients/', {
                         method: 'POST',
                         body: JSON.stringify(payload)
                     });
-                    showToast('Patient created successfully!', 'success');
+                    showToast('Patient admitted successfully.', 'success');
                 }
                 closeModal('patientModal');
                 document.getElementById('patientForm').reset();
                 document.getElementById('patientEditId').value = '';
-                await loadPatients();
+                await refreshData();
             } catch (err) {
                 showToast(err.message, 'error');
             }
         }
 
         async function deletePatient(id) {
-            if (!confirm('Are you sure you want to delete this patient record?')) return;
+            if (!confirm(`Are you sure you want to delete patient MRN #${id}? This action is irreversible.`)) return;
             try {
                 await apiCall(`/patients/${id}/`, { method: 'DELETE' });
-                showToast('Patient deleted successfully.', 'success');
-                await loadPatients();
+                showToast('Patient record discharged.', 'success');
+                await refreshData();
             } catch (e) {
                 showToast(e.message, 'error');
             }
         }
 
-        // Doctor Modal & Submission
+        async function viewPatientDetail(id) {
+            try {
+                const res = await apiCall(`/patients/${id}/`);
+                const p = res.data;
+                document.getElementById('detailPatientName').textContent = p.name;
+                document.getElementById('detailPatientSubtitle').textContent = `MRN: #${p.id} • Staff: ${p.created_by_name || 'You'}`;
+                document.getElementById('detailPatientGenderAge').textContent = `${p.gender.toUpperCase()} • ${p.age !== null ? p.age + ' yrs' : 'Age omitted'}`;
+                document.getElementById('detailPatientContact').textContent = p.contact_number;
+                document.getElementById('detailPatientEmail').textContent = p.email || 'None';
+                document.getElementById('detailPatientAddress').textContent = p.address || 'None logged';
+                document.getElementById('detailPatientHistory').textContent = p.medical_history || 'No clinical history recorded';
+
+                const docList = document.getElementById('detailAssignedDoctorsList');
+                const countBadge = document.getElementById('detailAssignedCount');
+                countBadge.textContent = p.assigned_doctors ? p.assigned_doctors.length : 0;
+
+                if (!p.assigned_doctors || p.assigned_doctors.length === 0) {
+                    docList.innerHTML = `<p class="text-zinc-400 py-2 font-mono text-[11px] text-center">No physicians currently assigned.</p>`;
+                } else {
+                    docList.innerHTML = p.assigned_doctors.map(d => `
+                        <div class="p-2.5 bg-white border border-zinc-200 rounded-md flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-semibold text-zinc-900">Dr. ${escapeHtml(d.doctor_name)}</p>
+                                <p class="text-[10px] text-zinc-500 font-mono">${escapeHtml(d.specialization)}</p>
+                            </div>
+                            <span class="text-[10px] font-mono text-zinc-400">${new Date(d.assigned_at).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                }
+
+                openModal('patientDetailsModal');
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+
         function editDoctor(id) {
             const d = cachedDoctors.find(item => item.id === id);
             if (!d) return;
@@ -1223,7 +1250,7 @@
             document.getElementById('doctorEmailInput').value = d.email;
             document.getElementById('doctorExperienceInput').value = d.years_of_experience;
             document.getElementById('doctorHospitalInput').value = d.hospital_affiliation || '';
-            document.getElementById('doctorModalTitle').textContent = `Edit Doctor #${d.id}`;
+            document.getElementById('doctorModalTitle').textContent = `Update Physician MD-${d.id}`;
             openModal('doctorModal');
         }
 
@@ -1245,63 +1272,56 @@
                         method: 'PUT',
                         body: JSON.stringify(payload)
                     });
-                    showToast('Doctor updated successfully!', 'success');
+                    showToast('Physician details updated.', 'success');
                 } else {
                     await apiCall('/doctors/', {
                         method: 'POST',
                         body: JSON.stringify(payload)
                     });
-                    showToast('Doctor registered successfully!', 'success');
+                    showToast('Physician registered successfully.', 'success');
                 }
                 closeModal('doctorModal');
                 document.getElementById('doctorForm').reset();
                 document.getElementById('doctorEditId').value = '';
-                await loadDoctors();
+                await refreshData();
             } catch (err) {
                 showToast(err.message, 'error');
             }
         }
 
         async function deleteDoctor(id) {
-            if (!confirm('Are you sure you want to delete this doctor record?')) return;
+            if (!confirm(`Are you sure you want to remove physician MD-${id}?`)) return;
             try {
                 await apiCall(`/doctors/${id}/`, { method: 'DELETE' });
-                showToast('Doctor deleted successfully.', 'success');
-                await loadDoctors();
+                showToast('Physician record deleted.', 'success');
+                await refreshData();
             } catch (e) {
                 showToast(e.message, 'error');
             }
         }
 
-        // Auth Submission
-        function setAuthMode(mode) {
-            authMode = mode;
-            const tabLogin = document.getElementById('authTabLogin');
-            const tabReg = document.getElementById('authTabRegister');
-            const nameGrp = document.getElementById('registerNameGroup');
+        function setAuthTab(tab) {
+            authTabMode = tab;
+            const tLogin = document.getElementById('authTabLogin');
+            const tReg = document.getElementById('authTabRegister');
+            const nameRow = document.getElementById('registerNameRow');
             const submitBtn = document.getElementById('authSubmitBtn');
-            const title = document.getElementById('authModalTitle');
-            const sub = document.getElementById('authModalSubtitle');
 
-            if (mode === 'login') {
-                tabLogin.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all';
-                tabReg.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-                nameGrp.classList.add('hidden');
-                submitBtn.textContent = 'Sign In';
-                title.textContent = 'Welcome Back';
-                sub.textContent = 'Sign in with your email and password';
+            if (tab === 'login') {
+                tLogin.className = 'py-1 text-xs font-medium rounded bg-white text-zinc-900 shadow-2xs transition-all';
+                tReg.className = 'py-1 text-xs font-medium rounded text-zinc-600 hover:text-zinc-900 transition-all';
+                nameRow.classList.add('hidden');
+                submitBtn.textContent = 'Sign In to Session';
             } else {
-                tabReg.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-blue-700 shadow-sm transition-all';
-                tabLogin.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-                nameGrp.classList.remove('hidden');
-                submitBtn.textContent = 'Create Account';
-                title.textContent = 'Register New User';
-                sub.textContent = 'Create your healthcare developer account';
+                tReg.className = 'py-1 text-xs font-medium rounded bg-white text-zinc-900 shadow-2xs transition-all';
+                tLogin.className = 'py-1 text-xs font-medium rounded text-zinc-600 hover:text-zinc-900 transition-all';
+                nameRow.classList.remove('hidden');
+                submitBtn.textContent = 'Create Provider Account';
             }
         }
 
         function fillDemoCredentials() {
-            setAuthMode('login');
+            setAuthTab('login');
             document.getElementById('authEmailInput').value = 'intern@healthcare.com';
             document.getElementById('authPasswordInput').value = 'YourNewPassword123';
         }
@@ -1312,14 +1332,14 @@
             const password = document.getElementById('authPasswordInput').value;
 
             try {
-                if (authMode === 'login') {
+                if (authTabMode === 'login') {
                     const res = await apiCall('/auth/login/', {
                         method: 'POST',
                         body: JSON.stringify({ email, password })
                     });
                     setToken(res.access);
                     currentUser = res.user;
-                    showToast('Successfully signed in!', 'success');
+                    showToast('Authenticated successfully.', 'success');
                 } else {
                     const name = document.getElementById('authNameInput').value;
                     const res = await apiCall('/auth/register/', {
@@ -1328,12 +1348,12 @@
                     });
                     setToken(res.access);
                     currentUser = res.user;
-                    showToast('Account created successfully!', 'success');
+                    showToast('Account registered.', 'success');
                 }
 
                 closeModal('authModal');
                 updateAuthUI();
-                await refreshCurrentTab();
+                await refreshData();
             } catch (err) {
                 showToast(err.message, 'error');
             }
@@ -1343,11 +1363,10 @@
             removeToken();
             currentUser = null;
             updateAuthUI();
-            showToast('You have been logged out.', 'info');
+            showToast('Session terminated.', 'info');
             switchTab('dashboard');
         }
 
-        // Modal Helpers
         async function openModal(id) {
             const el = document.getElementById(id);
             if (el) {
@@ -1364,25 +1383,24 @@
             if (el) el.classList.add('hidden');
         }
 
-        // Toast Helpers
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             const colors = {
-                success: 'bg-emerald-600 text-white shadow-emerald-500/20',
-                error: 'bg-rose-600 text-white shadow-rose-500/20',
-                info: 'bg-slate-900 text-white shadow-slate-900/20'
+                success: 'bg-zinc-900 text-white border border-zinc-700',
+                error: 'bg-red-700 text-white border border-red-800',
+                info: 'bg-zinc-900 text-white border border-zinc-800'
             };
             const icons = {
                 success: 'check-circle-2',
-                error: 'alert-circle',
+                error: 'alert-triangle',
                 info: 'info'
             };
 
-            toast.className = `${colors[type] || colors.info} px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-2 text-xs font-semibold pointer-events-auto transition-all transform translate-y-2 opacity-0 duration-200`;
+            toast.className = `${colors[type] || colors.info} px-3.5 py-2 rounded-md shadow-lg flex items-center space-x-2 text-xs font-mono pointer-events-auto transition-all transform translate-y-2 opacity-0 duration-150`;
             toast.innerHTML = `
-                <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i>
-                <span>${escapeHtml(message)}</span>
+                <i data-lucide="${icons[type] || 'info'}" class="w-3.5 h-3.5 shrink-0"></i>
+                <span class="font-sans text-xs">${escapeHtml(message)}</span>
             `;
 
             container.appendChild(toast);
@@ -1394,8 +1412,8 @@
 
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 200);
-            }, 3500);
+                setTimeout(() => toast.remove(), 150);
+            }, 3000);
         }
 
         function escapeHtml(text) {
@@ -1408,17 +1426,29 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // Mobile menu toggle
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('hidden');
+        function handleOmniSearch(e) {
+            const query = e.target.value.toLowerCase();
+            if (currentTab === 'patients') {
+                document.getElementById('patientFilterInput').value = query;
+                filterPatientTable();
+            } else if (currentTab === 'doctors') {
+                document.getElementById('doctorFilterInput').value = query;
+                filterDoctorGrid();
+            }
+        }
+
+        // Global hotkey Ctrl+K to focus search
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('omniSearchInput').focus();
+            }
         });
 
-        // App Boot
         window.addEventListener('DOMContentLoaded', async () => {
             refreshIcons();
             await loadCurrentUser();
-            await refreshCurrentTab();
+            await refreshData();
         });
     </script>
 </body>
